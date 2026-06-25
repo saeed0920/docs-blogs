@@ -43,3 +43,13 @@ resources:
   features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 - [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+
+## TODO
+- [] Static build for nextjs and config with webpack
+- [] Front course
+- [] Signal summery month
+- [] Proxy or permission layout for signal
+- [] Git workshop docs
+- [] Domjduge documents
+- [] Try to create blogs : Add BCPC - Charbug - or anything you want
+- [] Create post in linkdin
