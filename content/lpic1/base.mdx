@@ -1,0 +1,198 @@
+---
+title: SSH, Terminals & Shells
+description: Secure Shell (SSH) fundamentals, configuration, key-based authentication, and an introduction to Linux shells.
+---
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+## What is SSH?
+
+SSH (Secure Shell) is a cryptographic network protocol used for secure remote login, command execution, and file transfer. It replaces older unencrypted protocols like Telnet and `rsh` by encrypting all traffic — including passwords — between client and server. It operates on **port 22** by default.
+
+---
+
+## Core SSH Commands
+
+**Connect to a remote server:**
+
+```bash
+ssh username@remote_host
+```
+
+**Run a single command remotely:**
+
+```bash
+ssh username@remote_host "df -h"
+```
+
+**Copy files securely with SCP:**
+
+```bash
+# Local → Remote
+scp localfile.txt username@remote_host:/remote/directory/
+
+# Remote → Local
+scp username@remote_host:/remote/file.txt ./local/
+```
+
+---
+
+## SSH Architecture & Configuration Files
+
+SSH uses a client-server architecture. Configuration is split between the client side and the server (daemon) side.
+
+| Side   | File                                     | Purpose                                               |
+| :----- | :--------------------------------------- | :---------------------------------------------------- |
+| Client | `/etc/ssh/ssh_config` or `~/.ssh/config` | How your machine connects to other servers            |
+| Server | `/etc/ssh/sshd_config`                   | How the local SSH daemon accepts incoming connections |
+
+### Hardening `sshd_config`
+
+Edit `/etc/ssh/sshd_config` to secure your server:
+
+```text
+Port 2222                   # Change default port to reduce bot attacks
+PermitRootLogin no          # Disable direct root login
+PasswordAuthentication no   # Force SSH key authentication only
+X11Forwarding no            # Disable GUI forwarding if not needed
+```
+
+<Callout type="warn">
+Always restart the SSH daemon after changing `sshd_config` for changes to take effect:
+
+```bash
+sudo systemctl restart sshd
+# or on some distros:
+sudo systemctl restart ssh
+```
+
+</Callout>
+
+---
+
+## Key-Based Authentication
+
+Key-based authentication uses **asymmetric cryptography** (a public/private key pair) and is far more secure than password authentication.
+
+**Step 1 — Generate a key pair on your local machine:**
+
+```bash
+ssh-keygen -t ed25519
+```
+
+This creates two files:
+
+- `~/.ssh/id_ed25519` — your **private key** (never share this)
+- `~/.ssh/id_ed25519.pub` — your **public key** (safe to share)
+
+**Step 2 — Copy the public key to the remote server:**
+
+```bash
+ssh-copy-id username@remote_host
+```
+
+This appends your public key to `~/.ssh/authorized_keys` on the server. From now on, login happens without a password.
+
+<Callout type="info">
+  `ed25519` is the recommended key type. It is faster and more secure than the
+  older `RSA` (`-t rsa -b 4096`) algorithm.
+</Callout>
+
+---
+
+## Terminals vs. Shells
+
+These two terms are often used interchangeably but refer to completely different components.
+
+### What is a Terminal?
+
+A **terminal emulator** is the visual application that captures your keyboard input and renders text output on screen. It is just a window — it has no understanding of commands.
+
+Examples: GNOME Terminal, Alacritty, Kitty, iTerm2, Windows Terminal.
+
+### What is a Shell?
+
+A **shell** is the program running _inside_ the terminal. It acts as a command interpreter: it reads your input, parses it, passes it to the Linux kernel for execution, and returns the output.
+
+---
+
+## Popular Shells
+
+### Bash (Bourne Again Shell)
+
+The default shell on most Linux distributions and the **primary focus of the LPIC-1 exam**.
+
+```bash
+echo $SHELL   # Check your current shell
+# /bin/bash
+```
+
+|          |                                               |
+| -------- | --------------------------------------------- |
+| **Pros** | Universal, portable, strictly POSIX compliant |
+| **Cons** | Basic interactive features out of the box     |
+
+### Zsh (Z Shell)
+
+An extended Bash with powerful interactive improvements. Default shell on macOS since Catalina.
+
+|          |                                                                                        |
+| -------- | -------------------------------------------------------------------------------------- |
+| **Pros** | Advanced tab completion, spelling correction, [Oh My Zsh](https://ohmyz.sh/) ecosystem |
+| **Cons** | Can slow down with too many heavy plugins                                              |
+
+### Fish (Friendly Interactive Shell)
+
+A modern shell designed for great UX without any configuration.
+
+|          |                                                                                |
+| -------- | ------------------------------------------------------------------------------ |
+| **Pros** | Inline auto-suggestions, true color support, web-based config UI               |
+| **Cons** | **Not POSIX compliant** — standard Bash scripts won't run directly inside Fish |
+
+<Callout type="warn">
+  For the LPIC-1 exam, focus on **Bash**. Fish and Zsh are great for daily use
+  but won't appear in exam objectives.
+</Callout>
+
+---
+
+## Summary Table
+
+| Command / File             | Purpose                               |
+| -------------------------- | ------------------------------------- |
+| `ssh user@host`            | Connect to remote host                |
+| `scp file user@host:/path` | Securely copy file to remote          |
+| `ssh-keygen -t ed25519`    | Generate SSH key pair                 |
+| `ssh-copy-id user@host`    | Install public key on remote server   |
+| `/etc/ssh/sshd_config`     | SSH server (daemon) config            |
+| `~/.ssh/config`            | Per-user SSH client config            |
+| `~/.ssh/authorized_keys`   | Authorized public keys on server      |
+| `systemctl restart sshd`   | Reload SSH daemon after config change |
+
+---
+
+## Practice Questions
+
+<Accordions>
+  <Accordion title="What port does SSH use by default?">
+    Port **22**. You can change it with `Port` directive in
+    `/etc/ssh/sshd_config`.
+  </Accordion>
+  <Accordion title="What is the difference between a terminal and a shell?">
+    A **terminal** is the visual window application that renders text. A
+    **shell** (like Bash) is the program inside it that interprets and executes
+    commands.
+  </Accordion>
+  <Accordion title="Which shell is the focus of LPIC-1?">
+    **Bash** (Bourne Again Shell). It is the default on most Linux distros and
+    is POSIX compliant.
+  </Accordion>
+  <Accordion title="Why is Fish shell not suitable for running standard scripts?">
+    Fish is **not POSIX compliant**. Scripts written for Bash/sh will often fail
+    inside Fish unless you explicitly call `bash script.sh`.
+  </Accordion>
+  <Accordion title="What does ssh-copy-id do?">
+    It copies your local public key (`~/.ssh/id_*.pub`) to the remote server's
+    `~/.ssh/authorized_keys` file, enabling passwordless key-based login.
+  </Accordion>
+</Accordions>

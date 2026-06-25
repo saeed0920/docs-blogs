@@ -1,12 +1,448 @@
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
 html {
-  scrollbar-gutter: stable;
+    scrollbar-gutter: stable;
 }
 
 html > body[data-scroll-locked] {
-  margin-right: 0px !important;
-  --removed-body-scroll-bar-size: 0px !important;
+    margin-right: 0px !important;
+    --removed-body-scroll-bar-size: 0px !important;
+}
+
+:root:not(.dark) body {
+    background-image: url(/dots.png);
+    background-size: 9rem;
+}
+
+/* ============================================================
+   FONT IMPORTS
+   Using Inter for body (same as Zen docs + shadcn standard)
+   and Geist Mono for code blocks (Next.js docs style)
+   ============================================================ */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&display=swap");
+
+/* ============================================================
+   LIGHT THEME — Inspired by docs.zen-browser.app
+   Palette:
+     Background : #f8f8f7  (warm off-white, not pure white)
+     Surface    : #f0efee  (sidebar / card fill)
+     Border     : #e4e2df  (warm stone divider)
+     Text       : #1c1b1a  (near-black, warm tint)
+     Muted text : #706e6b  (warm medium grey)
+     Primary    : #18181b  (deep charcoal for buttons/links)
+     Accent     : #7c6af7  (soft violet — Zen's signature purple)
+   ============================================================ */
+@theme {
+    /* --- Backgrounds ----------------------------------------- */
+    --color-fd-background: hsl(40, 8%, 97%); /* #f8f7f5 – warm off-white */
+    --color-fd-foreground: hsl(30, 5%, 11%); /* #1c1b1a – warm near-black */
+
+    /* --- Muted (sidebar bg, tags, inline code fill) ---------- */
+    --color-fd-muted: hsl(36, 6%, 93%); /* #efede9 – sidebar surface */
+    --color-fd-muted-foreground: hsl(
+        30,
+        4%,
+        44%
+    ); /* #706e6a – warm medium grey */
+
+    /* --- Popover / dropdown ---------------------------------- */
+    --color-fd-popover: hsl(0, 0%, 100%); /* #ffffff */
+    --color-fd-popover-foreground: hsl(30, 5%, 11%);
+
+    /* --- Cards ----------------------------------------------- */
+    --color-fd-card: hsl(36, 6%, 94%); /* #f0eeea */
+    --color-fd-card-foreground: hsl(30, 5%, 11%);
+
+    /* --- Border --------------------------------------------- */
+    --color-fd-border: hsla(33, 8%, 72%, 55%); /* warm stone */
+
+    /* --- Primary (buttons, active sidebar item) -------------- */
+    --color-fd-primary: hsl(152, 100%, 38%); /* #00c16a */
+    --color-fd-primary-foreground: hsl(0, 0%, 100%);
+
+    /* --- Secondary ------------------------------------------ */
+    --color-fd-secondary: hsl(36, 6%, 91%);
+    --color-fd-secondary-foreground: hsl(30, 5%, 11%);
+
+    /* --- Accent (hover highlight, selection) ---------------- */
+    --color-fd-accent: hsla(152, 100%, 38%, 10%);
+    --color-fd-accent-foreground: hsl(152, 100%, 32%);
+
+    /* --- Ring (focus outline) -------------------------------- */
+    --color-fd-ring: hsl(152, 100%, 38%);
+}
+
+/* ============================================================
+   DARK THEME — shadcn/ui dark + Next.js docs dark palette
+   Palette:
+     Background : #09090b  (zinc-950, shadcn standard)
+     Surface    : #18181b  (zinc-900 – sidebar / card)
+     Border     : #27272a  (zinc-800 – subtle divider)
+     Text       : #fafafa  (zinc-50)
+     Muted text : #a1a1aa  (zinc-400)
+     Primary    : #e4e4e7  (zinc-200 – light for contrast)
+     Accent     : #8b5cf6  (violet-500 – keeps continuity with light)
+   ============================================================ */
+.dark {
+    /* --- Backgrounds ----------------------------------------- */
+    --color-fd-background: hsl(240, 10%, 3.9%); /* #09090b – zinc-950 */
+    --color-fd-foreground: hsl(0, 0%, 98%); /* #fafafa */
+
+    /* --- Muted ----------------------------------------------- */
+    --color-fd-muted: hsl(240, 3.7%, 11%); /* #1a1a1f – card surface */
+    --color-fd-muted-foreground: hsl(240, 5%, 64.9%); /* #a1a1aa – zinc-400 */
+
+    /* --- Popover -------------------------------------------- */
+    --color-fd-popover: hsl(240, 10%, 5.9%); /* #0e0e11 */
+    --color-fd-popover-foreground: hsl(0, 0%, 95%);
+
+    /* --- Cards ---------------------------------------------- */
+    --color-fd-card: hsl(240, 5%, 8%); /* #131316 */
+    --color-fd-card-foreground: hsl(0, 0%, 98%);
+
+    /* --- Border --------------------------------------------- */
+    --color-fd-border: hsla(240, 5%, 26%, 40%); /* zinc-800 at 40% */
+
+    /* --- Primary (buttons, active links) -------------------- */
+    --color-fd-primary: hsl(0, 0%, 98%); /* light text on dark btn */
+    --color-fd-primary-foreground: hsl(240, 10%, 3.9%);
+
+    /* --- Secondary ------------------------------------------ */
+    --color-fd-secondary: hsl(240, 4%, 13%); /* #1f1f24 */
+    --color-fd-secondary-foreground: hsl(0, 0%, 98%);
+
+    /* --- Accent (hover highlight, selection) ---------------- */
+    --color-fd-accent: hsla(152, 100%, 38%, 15%);
+    --color-fd-accent-foreground: hsl(
+        152,
+        80%,
+        60%
+    ); /* lighter green for dark */
+
+    /* --- Ring ----------------------------------------------- */
+    --color-fd-ring: hsl(152, 80%, 50%);
+}
+
+/* ============================================================
+   GLOBAL BASE STYLES
+   ============================================================ */
+:root {
+    --fd-layout-width: 1400px;
+    font-family:
+        "Inter",
+        system-ui,
+        -apple-system,
+        sans-serif;
+    font-feature-settings: "cv11", "cv01", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   TYPOGRAPHY — Calibrated scale
+   ============================================================ */
+.prose {
+    --tw-prose-body: hsl(30, 5%, 11%);
+    --tw-prose-headings: hsl(30, 5%, 8%);
+    --tw-prose-lead: hsl(30, 4%, 44%);
+    --tw-prose-links: hsl(250, 85%, 58%);
+    --tw-prose-bold: hsl(30, 5%, 8%);
+    --tw-prose-counters: hsl(30, 4%, 44%);
+    --tw-prose-bullets: hsl(33, 8%, 72%);
+    --tw-prose-hr: hsl(36, 6%, 88%);
+    --tw-prose-quotes: hsl(30, 5%, 20%);
+    --tw-prose-quote-borders: hsl(250, 85%, 67%);
+    --tw-prose-captions: hsl(30, 4%, 44%);
+    --tw-prose-code: hsl(250, 85%, 52%);
+    --tw-prose-pre-code: hsl(36, 6%, 88%);
+    --tw-prose-pre-bg: hsl(240, 10%, 10%);
+    --tw-prose-th-borders: hsl(33, 8%, 72%);
+    --tw-prose-td-borders: hsl(36, 6%, 88%);
+}
+
+.dark .prose {
+    --tw-prose-body: hsl(0, 0%, 85%);
+    --tw-prose-headings: hsl(0, 0%, 98%);
+    --tw-prose-lead: hsl(240, 5%, 64.9%);
+    --tw-prose-links: hsl(263, 80%, 78%);
+    --tw-prose-bold: hsl(0, 0%, 98%);
+    --tw-prose-counters: hsl(240, 5%, 64.9%);
+    --tw-prose-bullets: hsl(240, 5%, 34%);
+    --tw-prose-hr: hsl(240, 5%, 18%);
+    --tw-prose-quotes: hsl(0, 0%, 85%);
+    --tw-prose-quote-borders: hsl(263, 70%, 58%);
+    --tw-prose-captions: hsl(240, 5%, 64.9%);
+    --tw-prose-code: hsl(263, 80%, 78%);
+    --tw-prose-pre-code: hsl(240, 5%, 80%);
+    --tw-prose-pre-bg: hsl(240, 10%, 6%);
+    --tw-prose-th-borders: hsl(240, 5%, 26%);
+    --tw-prose-td-borders: hsl(240, 5%, 16%);
+}
+
+/* ============================================================
+   CODE BLOCKS
+   Light: warm cream shell / Dark: near-black shell
+   ============================================================ */
+
+/* Inline code */
+:not(pre) > code {
+    background-color: var(--color-fd-muted) !important;
+    color: hsl(250, 85%, 52%) !important;
+    padding: 0.15em 0.4em !important;
+    border-radius: 4px !important;
+    font-size: 0.875em !important;
+    font-weight: 500 !important;
+}
+
+.dark :not(pre) > code {
+    background-color: hsla(240, 5%, 20%, 0.8) !important;
+    color: hsl(263, 80%, 78%) !important;
+}
+
+/* ============================================================
+   SIDEBAR
+   Light: warm linen surface
+   Dark:  zinc-900 surface
+   ============================================================ */
+#nd-sidebar {
+    border-right: 1px solid var(--color-fd-border) !important;
+}
+
+/* Active sidebar item */
+[data-active="true"] {
+    background-color: var(--color-fd-accent) !important;
+    color: var(--color-fd-accent-foreground) !important;
+    font-weight: 600 !important;
+}
+
+/* ============================================================
+   NAVBAR / TOPBAR
+   Light: translucent warm white with backdrop-blur (Zen style)
+   Dark:  translucent zinc-950
+   ============================================================ */
+#nd-nav {
+    background-color: hsla(40, 8%, 97%, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid var(--color-fd-border) !important;
+}
+
+.dark #nd-nav {
+    background-color: hsla(240, 10%, 3.9%, 0.85) !important;
+    border-bottom: 1px solid var(--color-fd-border) !important;
+}
+
+/* ============================================================
+   CALLOUTS
+   Zen docs has very clean, borderless callout style
+   ============================================================ */
+/* Note / Info */
+[data-callout="info"],
+[data-callout="note"] {
+    background-color: hsla(250, 85%, 67%, 8%) !important;
+    border-left-color: hsl(250, 85%, 67%) !important;
+}
+
+/* Warning */
+[data-callout="warn"],
+[data-callout="warning"] {
+    background-color: hsla(38, 92%, 50%, 10%) !important;
+    border-left-color: hsl(38, 92%, 50%) !important;
+}
+
+/* Error / Danger */
+[data-callout="error"],
+[data-callout="danger"] {
+    background-color: hsla(0, 84%, 60%, 10%) !important;
+    border-left-color: hsl(0, 84%, 60%) !important;
+}
+
+/* Tip */
+[data-callout="tip"] {
+    background-color: hsla(142, 70%, 45%, 10%) !important;
+    border-left-color: hsl(142, 70%, 45%) !important;
+}
+
+/* Dark overrides for callouts */
+.dark [data-callout="info"],
+.dark [data-callout="note"] {
+    background-color: hsla(263, 70%, 58%, 12%) !important;
+    border-left-color: hsl(263, 70%, 65%) !important;
+}
+
+.dark [data-callout="warn"],
+.dark [data-callout="warning"] {
+    background-color: hsla(38, 92%, 50%, 12%) !important;
+}
+
+.dark [data-callout="error"],
+.dark [data-callout="danger"] {
+    background-color: hsla(0, 84%, 60%, 12%) !important;
+}
+
+.dark [data-callout="tip"] {
+    background-color: hsla(142, 70%, 45%, 12%) !important;
+}
+
+/* ============================================================
+   CARDS (fumadocs <Card> component)
+   ============================================================ */
+.fd-card,
+[data-card] {
+    transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease !important;
+}
+
+.fd-card:hover,
+[data-card]:hover {
+    border-color: hsl(250, 85%, 67%) !important;
+    box-shadow: 0 0 0 3px hsla(250, 85%, 67%, 10%) !important;
+}
+
+.dark .fd-card:hover,
+.dark [data-card]:hover {
+    border-color: hsl(263, 70%, 65%) !important;
+    box-shadow: 0 0 0 3px hsla(263, 70%, 58%, 15%) !important;
+}
+
+/* ============================================================
+   SEARCH DIALOG
+   ============================================================ */
+[data-search-dialog] {
+    border-radius: 16px !important;
+    border: 1px solid var(--color-fd-border) !important;
+    box-shadow: 0 20px 60px -10px hsla(0, 0%, 0%, 0.15) !important;
+}
+
+.dark [data-search-dialog] {
+    box-shadow: 0 20px 60px -10px hsla(0, 0%, 0%, 0.5) !important;
+}
+
+/* ============================================================
+   TABLE OF CONTENTS
+   Active anchor link highlighted with violet
+   ============================================================ */
+[data-toc] a[aria-selected="true"],
+[data-toc] a[data-active="true"] {
+    color: hsl(250, 85%, 58%) !important;
+    border-left-color: hsl(250, 85%, 67%) !important;
+}
+
+.dark [data-toc] a[aria-selected="true"],
+.dark [data-toc] a[data-active="true"] {
+    color: hsl(263, 80%, 78%) !important;
+    border-left-color: hsl(263, 70%, 65%) !important;
+}
+
+/* ============================================================
+   SCROLLBAR (Webkit) — subtle, matches both themes
+   ============================================================ */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: hsla(30, 5%, 50%, 25%);
+    border-radius: 100px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background-color: hsla(240, 5%, 50%, 25%);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: hsla(250, 85%, 67%, 55%);
+}
+
+/* ============================================================
+   SELECTION COLOR
+   ============================================================ */
+::selection {
+    background-color: hsla(250, 85%, 67%, 20%);
+    color: hsl(30, 5%, 8%);
+}
+
+.dark ::selection {
+    background-color: hsla(263, 70%, 58%, 30%);
+    color: hsl(0, 0%, 98%);
+}
+
+/* ============================================================
+   FOCUS RING — accessible, violet
+   ============================================================ */
+:focus-visible {
+    outline: 2px solid hsl(250, 85%, 67%) !important;
+    outline-offset: 2px !important;
+}
+
+.dark :focus-visible {
+    outline-color: hsl(263, 70%, 65%) !important;
+}
+
+/* ============================================================
+   HEADING ANCHOR LINKS
+   ============================================================ */
+.prose h1:hover .anchor,
+.prose h2:hover .anchor,
+.prose h3:hover .anchor,
+.prose h4:hover .anchor {
+    opacity: 1;
+    color: hsl(250, 85%, 67%);
+}
+
+.dark .prose h1:hover .anchor,
+.dark .prose h2:hover .anchor,
+.dark .prose h3:hover .anchor {
+    color: hsl(263, 80%, 78%);
+}
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+.prose table {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--color-fd-border);
+}
+
+.prose thead {
+    background-color: var(--color-fd-muted);
+}
+
+.prose th {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-fd-muted-foreground);
+}
+
+/* ============================================================
+   SMOOTH PAGE TRANSITIONS (optional, Zen-style feel)
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+:not(pre) > code {
+    background-color: var(--color-fd-muted) !important;
+    color: hsl(152, 100%, 32%) !important;
+    border: 1px solid var(--color-fd-border);
+    padding: 0.15em 0.4em !important;
+    border-radius: 4px !important;
+}
+
+.dark :not(pre) > code {
+    background-color: hsl(240, 4%, 15%) !important;
+    color: hsl(152, 80%, 65%) !important;
 }

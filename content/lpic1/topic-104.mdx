@@ -1,0 +1,33 @@
+---
+title: Topic 104 – Devices, Linux Filesystems, Filesystem Hierarchy Standard
+description: Create and manage partitions, filesystems, links, and file permissions.
+---
+
+# Topic 104: Devices and Filesystems
+
+This topic covers configuring local storage devices, building filesystems, managing file links, and locating files according to standard pathways.
+
+## Key Objectives
+
+### 104.1 Create partitions and filesystems
+* Format drives with filesystems like ext4, XFS, and VFAT using `mkfs`.
+* Configure swap space (`mkswap`, `swapon`).
+
+### 104.2 Maintain the integrity of filesystems
+* Verify filesystem health and fix corruption using `fsck` and `tune2fs`.
+* Monitor disk space via `df` and `du`.
+
+### 104.3 Control mounting and unmounting of filesystems
+* Manually mount storage using `mount` and `umount`.
+* Configure persistent mounts inside `/etc/fstab`.
+
+### 104.4 Manage file permissions and ownership
+* Control security access via `chmod`, `chown`, and `chgrp`.
+* Understand special permissions like SUID, SGID, and the Sticky Bit.
+
+### 104.5 Create and change hard and symbolic links
+* Understand differences between hard links and symbolic (soft) links (`ln`).
+
+### 104.6 Find system files and place files in the correct location
+* Search the system using `find`, `locate`, `which`, and `whereis`.
+* Adhere to the Filesystem Hierarchy Standard (FHS).

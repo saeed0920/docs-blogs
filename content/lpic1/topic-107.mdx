@@ -1,0 +1,21 @@
+---
+title: Topic 107 – Administrative Tasks
+description: Manage user accounts, groups, automation jobs, and localization settings.
+---
+
+# Topic 107: Administrative Tasks
+
+This section covers the daily duties of maintaining system health, user identities, and scheduled automation tasks.
+
+## Key Objectives
+
+### 107.1 Manage user and group accounts and related system files
+* Create, delete, and modify user credentials (`useradd`, `usermod`, `userdel`).
+* Inspect `/etc/passwd`, `/etc/shadow`, and `/etc/group` for auditing.
+
+### 107.2 Automate system administration tasks by scheduling jobs
+* Configure one-time automated tasks using `at`.
+* Implement repeating automation cron jobs via `/etc/crontab` and user `crontab -e` setups.
+
+### 107.3 Maintain system localization and time
+* Set regional locales, languages, and time zones using `timedatectl` and `localectl`.

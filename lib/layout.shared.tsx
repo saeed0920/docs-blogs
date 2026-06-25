@@ -8,5 +8,13 @@ export function baseOptions(): BaseLayoutProps {
       title: appName,
     },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
+    links: [
+        {
+          text: 'Lpic-1',
+          url: '/lpic1',
+          // secondary items will be displayed differently on navbar
+          secondary: false,
+        },
+      ],
   };
 }

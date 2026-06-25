@@ -1,0 +1,23 @@
+---
+title: Topic 101 – System Architecture
+description: Determine and configure hardware settings, boot the system, and change runlevels / boot targets.
+---
+
+# Topic 101: System Architecture
+
+This topic covers how to interact with the system hardware and manage the initialization/boot sequence of a Linux machine.
+
+## Key Objectives
+
+### 101.1 Determine and configure hardware settings
+* Configure internal and peripheral devices using tools like `/proc`, `/sys`, `lspci`, `lsusb`, and `lsmod`.
+* Understand kernel modules and how they interact with hardware.
+
+### 101.2 Boot the system
+* Understand the Linux boot sequence from BIOS/UEFI to the initialization daemon.
+* Inspect log files via `dmesg` or `journalctl` to troubleshoot boot issues.
+* Interact with the GRUB2 bootloader.
+
+### 101.3 Change runlevels / boot targets
+* Manage SysV init runlevels or Systemd boot targets (e.g., multi-user, graphical).
+* Properly shut down, reboot, or alert users about system changes.
