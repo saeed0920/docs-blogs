@@ -1,0 +1,83 @@
+---
+title: Quiz or ssh
+description: Test your knowledge of OpenSSH — key generation, client config, daemon hardening, and common commands.
+---
+
+import Quiz from "@/components/quiz";
+
+# SSH, SSH Config & SSH Keys
+
+SSH (Secure Shell) is one of the most critical tools on any Linux system.
+This quiz covers key generation, the client config file, `sshd_config` hardening,
+and the commands you'll type every day as a sysadmin.
+
+<Quiz
+  title="SSH — quick quiz"
+  passScore={70}
+  showVimToggle={true}
+  questions={[
+    {
+      type: "multiple",
+      question:
+        "Which command generates a new ED25519 SSH key pair with a comment?",
+      options: [
+        'ssh-keygen -t rsa -b 4096 -C "user@host"',
+        'ssh-keygen -t ed25519 -C "user@host"',
+        'ssh-add -t ed25519 -C "user@host"',
+        "openssl genrsa -out id_ed25519 2048",
+      ],
+      correctIndex: 1,
+      explanation:
+        '`ssh-keygen -t ed25519 -C "comment"` creates a modern ED25519 key pair. ' +
+        "The `-C` flag sets a human-readable comment (usually your email or hostname). " +
+        "ED25519 is preferred over RSA today because it's faster and produces smaller keys.",
+    },
+    {
+      type: "bash",
+      question:
+        "Write the command that copies your public key to a remote server so you can log in without a password. " +
+        "Remote user is `saeed`, host is `192.168.1.10`.",
+      hint: "There's a dedicated OpenSSH utility for this — no manual cat or piping needed.",
+      expectedAnswer: "ssh-copy-id saeed@192.168.1.10",
+      explanation:
+        "`ssh-copy-id user@host` appends your `~/.ssh/id_*.pub` to the remote `~/.ssh/authorized_keys` " +
+        "and sets the correct permissions automatically. You can also pass `-i` to choose a specific key.",
+    },
+    {
+      type: "multiple",
+      question:
+        "In `~/.ssh/config`, which keyword sets a custom private key file for a specific host alias?",
+      options: ["KeyFile", "PrivateKey", "IdentityFile", "AuthorizedKey"],
+      correctIndex: 2,
+      explanation:
+        "`IdentityFile` points to the private key for a given Host block. " +
+        "A typical entry looks like:\n\nHost prod\n  HostName 10.0.0.1\n  User deploy\n  IdentityFile ~/.ssh/id_ed25519_prod",
+    },
+    {
+      type: "bash",
+      question:
+        "Write the `~/.ssh/config` block that creates an alias `devbox` for the host `192.168.50.20`, " +
+        "logging in as user `dev`, on port `2222`, using the key `~/.ssh/id_ed25519`.",
+      hint: "Use Host, HostName, User, Port, and IdentityFile directives — one per line, indented.",
+      expectedAnswer:
+        "Host devbox\n  HostName 192.168.50.20\n  User dev\n  Port 2222\n  IdentityFile ~/.ssh/id_ed25519",
+      explanation:
+        "After saving this block you can simply run `ssh devbox` instead of typing the full " +
+        "`ssh -i ~/.ssh/id_ed25519 -p 2222 dev@192.168.50.20`. " +
+        "The SSH client reads `~/.ssh/config` before falling back to defaults.",
+    },
+    {
+      type: "bash",
+      question:
+        "In `/etc/ssh/sshd_config`, write the two directives (one per line) that disable root login " +
+        "and disable password authentication entirely — forcing key-based auth only.",
+      hint: "Both are boolean options. One is `PermitRootLogin`, the other is `PasswordAuthentication`.",
+      expectedAnswer: "PermitRootLogin no\nPasswordAuthentication no",
+      explanation:
+        "Setting `PermitRootLogin no` prevents direct root SSH access. " +
+        "`PasswordAuthentication no` forces every user to authenticate with a key instead of a password, " +
+        "which eliminates brute-force password attacks. After editing `sshd_config` always run " +
+        "`sshd -t` to validate syntax, then `systemctl restart sshd` to apply the changes.",
+    },
+  ]}
+/>

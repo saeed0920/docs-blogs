@@ -10,8 +10,14 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@codemirror/lang-css": "latest",
+    "@codemirror/lang-javascript": "latest",
+    "@codemirror/theme-one-dark": "latest",
+    "@codemirror/view": "latest",
     "@fuma-translate/react": "^1.0.2",
     "@radix-ui/react-accordion": "^1.2.14",
+    "@uiw/codemirror-themes": "^4.25.10",
+    "@uiw/react-codemirror": "latest",
     "class-variance-authority": "^0.7.1",
     "fumadocs-core": "16.10.4",
     "fumadocs-mdx": "15.0.12",
