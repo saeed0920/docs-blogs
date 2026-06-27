@@ -54,6 +54,15 @@ html > body[data-scroll-locked] {
     font-display: swap;
 }
 
+/* Vazirmtn */
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("/fonts/vazirmatn-regular.ttf");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
 /* ============================================================
    LIGHT THEME — Inspired by docs.zen-browser.app
    Palette:
@@ -137,7 +146,7 @@ html > body[data-scroll-locked] {
     --color-fd-border: hsla(240, 5%, 26%, 40%); /* zinc-800 at 40% */
 
     /* --- Primary (buttons, active links) -------------------- */
-    --color-fd-primary: hsl(0, 0%, 98%); /* light text on dark btn */
+    --color-fd-primary: hsl(152, 100%, 38%);
     --color-fd-primary-foreground: hsl(240, 10%, 3.9%);
 
     /* --- Secondary ------------------------------------------ */
@@ -164,6 +173,7 @@ html > body[data-scroll-locked] {
     font-family:
         "Inter",
         "Playwrite",
+        "Vazirmatn",
         system-ui,
         -apple-system,
         sans-serif;
@@ -244,7 +254,7 @@ html > body[data-scroll-locked] {
 
 /* Active sidebar item */
 [data-active="true"] {
-    background-color: var(--color-fd-accent) !important;
+    /*background-color: var(--color-fd-accent) !important;*/
     color: var(--color-fd-accent-foreground) !important;
     font-weight: 600 !important;
 }
@@ -485,4 +495,12 @@ h3 h4,
 h5,
 a {
     font-family: "Playwrite", "Inter";
+}
+
+a[data-active="true"] {
+    background-color: transparent !important;
+}
+
+[dir="rtl"] {
+    font-family: "Vazirmatn", sans-serif;
 }
