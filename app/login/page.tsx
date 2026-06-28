@@ -1,8 +1,11 @@
+// login-form.tsx (or keep inline)
 "use client";
+
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from 'react'
 
-export default function LoginPage() {
+function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,13 +16,11 @@ export default function LoginPage() {
   async function handleSubmit() {
     setLoading(true);
     setError("");
-
     const res = await fetch(`/api/login?from=${from}`, {
       method: "POST",
       body: JSON.stringify({ password }),
       headers: { "Content-Type": "application/json" },
     });
-
     if (res.ok) {
       const { from } = await res.json();
       router.push(from);
@@ -54,5 +55,13 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

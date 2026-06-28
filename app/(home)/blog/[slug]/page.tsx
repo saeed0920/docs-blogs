@@ -35,7 +35,7 @@ export default async function Page(props: {
         className="w-full max-w-[1400px] mx-auto flex flex-col px-4 py-8"
       >
         <div className="prose min-w-0">
-          <InlineTOC items={page.data.toc} />
+          <InlineTOC className="mb-4" items={page.data.toc} />
           <Mdx components={defaultMdxComponents} />
         </div>
         <div className="flex flex-col gap-2 text-sm">

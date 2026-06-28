@@ -3,7 +3,6 @@ import { blog } from "@/lib/source";
 
 export default function Home() {
   const posts = blog.getPages();
-  console.log(posts);
 
   return (
     <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 py-8">
