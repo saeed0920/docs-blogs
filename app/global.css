@@ -16,52 +16,7 @@ html > body[data-scroll-locked] {
     background-size: 9rem;
 }
 
-/* ============================================================
-   FONT IMPORTS
-   Using Inter for body (same as Zen docs + shadcn standard)
-   and Geist Mono for code blocks (Next.js docs style)
-   ============================================================ */
 
-/* Inter */
-@font-face {
-    font-family: "Inter";
-    src: url("/fonts/Inter-Regular.ttf");
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-}
-@font-face {
-    font-family: "Inter";
-    src: url("/fonts/Inter-Italic.ttf");
-    font-style: italic;
-    font-weight: 100 900;
-    font-display: swap;
-}
-
-/* Playwrite */
-@font-face {
-    font-family: "Playwrite";
-    src: url("/fonts/Playwrite-Regular.ttf");
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-}
-@font-face {
-    font-family: "Playwrite";
-    src: url("/fonts/Playwrite-Italic.ttf");
-    font-style: italic;
-    font-weight: 100 900;
-    font-display: swap;
-}
-
-/* Vazirmtn */
-@font-face {
-    font-family: "Vazirmatn";
-    src: url("/fonts/vazirmatn-regular.ttf");
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-}
 
 /* ============================================================
    LIGHT THEME — Inspired by docs.zen-browser.app
