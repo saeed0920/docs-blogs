@@ -1,0 +1,115 @@
+---
+title: Quiz — Linux Fundamentals (Kernel, Shell, Filesystem)
+description: Test your understanding of early Linux concepts — kernel vs user space, shell basics, filesystem structure, and core commands.
+---
+
+import Quiz from "@/components/quiz";
+
+# Linux Fundamentals (Based on early chapters)
+
+This quiz covers the foundational concepts typically introduced in the early pages of Linux system introductions: how Linux is structured, how the shell works, how the filesystem is organized, and the basic commands every user must know.
+
+<Quiz
+  title="Linux Basics — Chapter Check"
+  passScore={70}
+  showVimToggle={true}
+  questions={[
+    {
+      type: "multiple",
+      question:
+        "Which statement best describes the role of the Linux kernel?",
+      options: [
+        "It is the graphical interface used by users",
+        "It manages hardware resources and system calls between software and hardware",
+        "It is a text editor for system configuration",
+        "It is a package manager for installing software",
+      ],
+      correctIndex: 1,
+      explanation:
+        "The Linux kernel is the core of the operating system. It manages CPU, memory, devices, and provides system call interfaces for user-space programs to interact with hardware safely."
+    },
+    {
+      type: "multiple",
+      question:
+        "What is the primary role of a shell in Linux?",
+      options: [
+        "To directly manage hardware drivers",
+        "To act as an interface between the user and the kernel",
+        "To store system logs",
+        "To compile the Linux kernel",
+      ],
+      correctIndex: 1,
+      explanation:
+        "A shell (like Bash or Zsh) is a command-line interpreter. It translates user commands into system calls that the kernel executes."
+    },
+    {
+      type: "bash",
+      question:
+        "Write the command to show your current working directory.",
+      hint: "This command prints the full path of where you are in the filesystem.",
+      expectedAnswer: "pwd",
+      explanation:
+        "`pwd` stands for 'print working directory'. It outputs the absolute path of the current directory."
+    },
+    {
+      type: "bash",
+      question:
+        "Create a directory named `linux-lab`.",
+      hint: "Use the standard command for creating directories.",
+      expectedAnswer: "mkdir linux-lab",
+      explanation:
+        "`mkdir` creates a new directory. Here it creates a folder called `linux-lab` in the current location."
+    },
+    {
+      type: "multiple",
+      question:
+        "Which directory typically contains system configuration files in Linux?",
+      options: [
+        "/home",
+        "/etc",
+        "/bin",
+        "/tmp",
+      ],
+      correctIndex: 1,
+      explanation:
+        "`/etc` stores system-wide configuration files such as network settings, user configuration, and service configurations."
+    },
+    {
+      type: "bash",
+      question:
+        "List all files in the current directory including hidden files.",
+      hint: "Hidden files in Linux start with a dot (.).",
+      expectedAnswer: "ls -a",
+      explanation:
+        "`ls -a` lists all files including hidden ones (dotfiles). Without `-a`, hidden files are not shown."
+    },
+    {
+      type: "multiple",
+      question:
+        "What does the command `cd ..` do?",
+      options: [
+        "Deletes the current directory",
+        "Moves up one directory level",
+        "Creates a new directory",
+        "Shows hidden files",
+      ],
+      correctIndex: 1,
+      explanation:
+        "`cd ..` changes the working directory to the parent directory."
+    },
+    {
+      type: "multiple",
+      question:
+        "In Linux, everything is represented as a:",
+      options: [
+        "Registry key",
+        "File",
+        "Process only",
+        "Network socket only",
+      ],
+      correctIndex: 1,
+      explanation:
+        "In Linux philosophy, almost everything is treated as a file — including devices, processes, and sockets."
+    }
+  ]}
+/>

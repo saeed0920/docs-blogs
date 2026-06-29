@@ -1,0 +1,244 @@
+---
+title: "Text Processing 2"
+sidebar_position: 2
+---
+
+# LPIC-1 Training Lab: File Search & Text Processing
+
+## Goal of this session
+
+By the end of this lab, students should be able to:
+
+- Search files in Linux using `find`
+- Search inside files using `grep`
+- Combine commands using pipes (`|`)
+- Redirect output to files
+- Process text data using CLI tools
+
+---
+
+## Challenge 1 – Explore the System
+
+### Tasks
+
+- Show current directory
+- List all files including hidden ones
+- Display file types
+- Show home directory path
+
+### Commands
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+pwd
+ls -la
+file *
+echo $HOME
+```
+
+</details>
+
+---
+
+## Challenge 2 – Find Files
+
+### Tasks
+
+- Find all `.conf` files in `/etc`
+- Find file named `hosts`
+- Find directories in `/var`
+- Find files larger than 1MB in `/usr`
+
+### Commands
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+find /etc -name "*.conf"
+find / -name hosts
+find /var -type d
+find /usr -size +1M
+```
+
+</details>
+
+---
+
+## Challenge 3 – Locate vs Find
+
+### Tasks
+
+- Use `locate` to find `passwd`
+- Update database first
+
+### Commands
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+sudo updatedb
+locate passwd
+```
+
+</details>
+
+---
+
+## Challenge 4 – Grep Basics
+
+### Tasks
+
+- Find `root` in `/etc/passwd`
+- Find `nologin` users
+- Count `bash` occurrences
+
+### Commands
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+grep root /etc/passwd
+grep nologin /etc/passwd
+grep -c bash /etc/passwd
+```
+
+</details>
+
+---
+
+## Challenge 5 – Pipes
+
+### Tasks
+
+- Extract usernames
+- Sort them
+- Remove duplicates
+
+### Command
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+cut -d: -f1 /etc/passwd | sort | uniq
+```
+
+</details>
+
+---
+
+## Challenge 6 – Redirection
+
+### Tasks
+
+- Save users to file
+- Append system info
+- Save errors to log file
+
+### Commands
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+cut -d: -f1 /etc/passwd > users.txt
+echo "system users" >> users.txt
+ls /nonexistent 2> errors.log
+```
+
+</details>
+
+---
+
+## Challenge 7 – Text Processing
+
+### Tasks
+
+- Count lines
+- Show first 5 lines
+- Show last 5 lines
+- Replace `:` with space
+
+### Commands
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+wc -l /etc/passwd
+head -n 5 /etc/passwd
+tail -n 5 /etc/passwd
+cat /etc/passwd | tr ':' ' '
+```
+
+</details>
+
+---
+
+## Challenge 8 – Mini Project
+
+### Scenario
+
+You are analyzing system users.
+
+### Tasks
+
+- Extract usernames
+- Sort and save to file
+- Count users
+- Show first 10 users
+
+### Commands
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+cut -d: -f1 /etc/passwd | sort > users.txt
+wc -l users.txt
+head -n 10 users.txt
+```
+
+</details>
+
+---
+
+## Bonus Challenges
+
+- Find all `.log` files in `/var/log`
+- Use `grep` on logs
+- Find running SSH process
+
+<details>
+<summary>Show Commands</summary>
+
+```bash
+ps aux | grep ssh
+```
+</details>
+
+---
+
+## Cheat Sheet
+
+```bash
+find
+locate
+grep
+cut
+sort
+uniq
+wc
+head
+tail
+tr
+|
+>
+>>
+2>
+```

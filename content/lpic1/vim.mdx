@@ -1,0 +1,472 @@
+---
+title: Vim & Vim Motions
+description: Learn Vim from scratch — modes, essential motions, editing commands, and muscle-memory drills — short and practical.
+---
+
+import Quiz from "@/components/quiz";
+
+# Vim & Vim Motions
+
+Vim is the editor you'll find on **every** Linux server, minimal container, and rescue environment.
+You don't need to master all of it — you need to be fast enough to open a config file, make a change, and save it without panicking.
+This lesson gets you there quickly.
+
+---
+
+## Why Vim feels strange at first
+
+Most editors are always in "typing mode." Vim is different — it has **modes**, and which mode you're in decides what your keys do.
+
+```
+┌─────────────────────────────────────────────────────┐
+│                      NORMAL                         │
+│         (navigate, delete, copy, paste)             │
+│                                                     │
+│   i / a / o / I / A / O ──────────────► INSERT     │
+│                                  Esc ◄──            │
+│                                                     │
+│   v / V / Ctrl-v ─────────────► VISUAL             │
+│                                  Esc ◄──            │
+│                                                     │
+│   : ──────────────────────────► COMMAND             │
+│                          Enter / Esc ◄──            │
+└─────────────────────────────────────────────────────┘
+```
+
+When you open Vim you land in **Normal mode**. Nothing you type will appear as text — keys are **commands**.
+Press `i` to enter Insert mode, type your text, then press `Esc` to go back to Normal mode.
+
+---
+
+## Opening and saving files
+
+```bash
+vim file.txt          # open (creates file if it doesn't exist)
+vim +42 file.txt      # open and jump to line 42
+vim +/error file.txt  # open and jump to first match of "error"
+```
+
+Once inside Vim, all file operations are **Command mode** (`:` prefix):
+
+| command     | what it does                              |
+|-------------|-------------------------------------------|
+| `:w`        | save (write)                              |
+| `:q`        | quit (fails if unsaved changes)           |
+| `:wq`       | save and quit                             |
+| `:x`        | save and quit (only writes if changed)    |
+| `:q!`       | quit and discard all changes              |
+| `:w newname`| save as a different filename              |
+| `ZZ`        | Normal-mode shortcut for `:wq`            |
+| `ZQ`        | Normal-mode shortcut for `:q!`            |
+
+> **Tip:** If you're ever stuck and can't quit, press `Esc` a couple of times then type `:q!` and hit Enter.
+
+---
+
+## Modes in practice
+
+```
+Open file  →  Normal mode  →  press i  →  Insert mode
+type text  →  press Esc   →  Normal mode →  :wq  →  saved
+```
+
+Think of **Normal mode as home base**. You always return there before doing anything structural (moving, deleting, copying).
+
+---
+
+## Moving around — the heart of Vim
+
+In Normal mode the arrow keys work, but using them is slow. The Vim way uses the home row:
+
+```
+        k
+        ↑
+   h ←     → l
+        ↓
+        j
+```
+
+| key | movement                          |
+|-----|-----------------------------------|
+| `h` | ← one character                   |
+| `l` | → one character                   |
+| `j` | ↓ one line                        |
+| `k` | ↑ one line                        |
+| `w` | jump forward to start of next **w**ord |
+| `b` | jump **b**ack to start of previous word |
+| `e` | jump to **e**nd of current word   |
+| `0` | jump to start of line (column 0)  |
+| `^` | jump to first non-blank character  |
+| `$` | jump to end of line               |
+| `gg`| jump to top of file               |
+| `G` | jump to bottom of file            |
+| `5G`| jump to line 5 (any number + G)   |
+| `Ctrl-d` | scroll half-page **d**own    |
+| `Ctrl-u` | scroll half-page **u**p      |
+| `%` | jump to matching bracket `( ) [ ] { }` |
+
+### Counts multiply motions
+
+Almost every motion accepts a **count** prefix:
+
+```
+5j    →  move down 5 lines
+3w    →  jump forward 3 words
+10l   →  move right 10 characters
+```
+
+---
+
+## Entering Insert mode — 6 ways
+
+| key | where the cursor lands before you type |
+|-----|----------------------------------------|
+| `i` | before the cursor (**i**nsert)         |
+| `a` | after the cursor (**a**ppend)          |
+| `I` | at the start of the line              |
+| `A` | at the end of the line                |
+| `o` | new line below and enter Insert       |
+| `O` | new line above and enter Insert       |
+
+---
+
+## Editing in Normal mode
+
+You don't always need to enter Insert mode to make changes. Normal mode has powerful one-key operators:
+
+### Delete
+
+| key    | what it deletes                  |
+|--------|----------------------------------|
+| `x`    | character under cursor           |
+| `X`    | character before cursor          |
+| `dd`   | whole line                       |
+| `D`    | from cursor to end of line       |
+| `dw`   | from cursor to end of word       |
+| `d$`   | from cursor to end of line       |
+| `d0`   | from cursor to start of line     |
+| `dgg`  | from cursor to top of file       |
+| `dG`   | from cursor to bottom of file    |
+| `5dd`  | delete 5 lines                   |
+
+### Change (delete + enter Insert)
+
+| key    | what it changes                  |
+|--------|----------------------------------|
+| `cc`   | whole line                       |
+| `C`    | from cursor to end of line       |
+| `cw`   | from cursor to end of word       |
+| `ci"`  | content **i**nside `"..."` pair  |
+| `ca(`  | content **a**round `(...)` pair  |
+
+### Copy and paste
+
+| key    | action                          |
+|--------|---------------------------------|
+| `yy`   | yank (copy) current line        |
+| `Y`    | yank to end of line             |
+| `yw`   | yank word                       |
+| `3yy`  | yank 3 lines                    |
+| `p`    | paste after cursor / below line |
+| `P`    | paste before cursor / above     |
+
+### Undo and redo
+
+| key      | action               |
+|----------|----------------------|
+| `u`      | undo last change     |
+| `Ctrl-r` | redo                 |
+| `U`      | undo all changes on current line |
+
+---
+
+## Operators + motions = power
+
+Vim's real strength is combining an **operator** with a **motion**:
+
+```
+[operator][count][motion]
+```
+
+| example  | meaning                                    |
+|----------|--------------------------------------------|
+| `d3w`    | delete 3 words forward                     |
+| `y$`     | yank from cursor to end of line            |
+| `c2j`    | change current line + 2 lines below        |
+| `d/foo`  | delete from cursor to next match of "foo"  |
+| `yG`     | yank from current line to end of file      |
+
+---
+
+## Search and replace
+
+### Searching
+
+```
+/pattern       search forward
+?pattern       search backward
+n              next match
+N              previous match
+*              search for word under cursor (forward)
+#              search for word under cursor (backward)
+```
+
+Set `:set hlsearch` to highlight all matches, `:set incsearch` for live preview as you type.
+
+### Substitution with `:s`
+
+```vim
+:s/old/new/          replace first match on current line
+:s/old/new/g         replace all matches on current line
+:%s/old/new/g        replace all matches in entire file
+:%s/old/new/gc       replace all, ask for confirmation each time
+:5,10s/old/new/g     replace in lines 5 through 10
+```
+
+---
+
+## Visual mode — select then act
+
+| key      | selects                          |
+|----------|----------------------------------|
+| `v`      | character-by-character           |
+| `V`      | whole lines                      |
+| `Ctrl-v` | rectangular block (column mode)  |
+
+After selecting, press an operator:
+- `d` — delete selection
+- `y` — yank selection
+- `>` / `<` — indent / de-indent
+- `~` — toggle case
+
+---
+
+## Useful `:` commands
+
+```vim
+:set number          " show line numbers
+:set relativenumber  " show relative line numbers (great for motions)
+:set hlsearch        " highlight search results
+:set ignorecase      " case-insensitive search
+:set smartcase       " case-sensitive only when query has uppercase
+:set tabstop=4       " tab width
+:set expandtab       " use spaces instead of tabs
+:syntax on           " enable syntax highlighting
+:noh                 " clear search highlight
+:! ls                " run a shell command without leaving Vim
+```
+
+Put these in `~/.vimrc` to make them permanent.
+
+---
+
+## Muscle-memory drills
+
+The only way to internalize Vim motions is repetition. Work through these in order:
+
+### Drill 1 — Basic survival
+
+Open any text file and practice until it feels natural:
+
+1. Move with `hjkl` — **don't touch the arrow keys**
+2. Press `i`, type a word, press `Esc`
+3. Press `o`, type a new line, press `Esc`
+4. Press `dd` to delete a line
+5. Press `u` to undo
+6. Save with `:w`, quit with `:q`
+
+### Drill 2 — Word jumping
+
+```bash
+# Open /etc/passwd and practice:
+vim /etc/passwd
+```
+
+- `w` across the fields — count how many words per line
+- `b` to jump back
+- `dw` to delete a word, `u` to undo
+- `5j` to jump down 5 lines
+- `gg` → top, `G` → bottom
+- `10G` → line 10
+
+### Drill 3 — Find and replace
+
+```bash
+vim /etc/hosts
+```
+
+- `/localhost` to search, `n` to jump between matches
+- `:%s/localhost/LOCALHOST/gc` — replace with confirmation
+- `:noh` to clear the highlight
+- `ZQ` to quit without saving
+
+### Drill 4 — Copy / paste workflow
+
+1. `V` to select a line in visual mode
+2. `3j` to extend selection 3 lines down
+3. `y` to yank
+4. `G` to jump to end of file
+5. `p` to paste
+
+---
+
+## Common beginner mistakes
+
+| mistake | fix |
+|---------|-----|
+| Typing when in Normal mode | Press `Esc` then `i` to get back to Insert |
+| Can't quit | `Esc` then `:q!` |
+| Accidentally deleted text | `u` (undo) immediately |
+| Search highlight won't go away | `:noh` |
+| Pasted text is indented wrongly | `:set paste` before pasting, `:set nopaste` after |
+| Forgot which mode you're in | Look at the bottom-left — it says `-- INSERT --` in Insert mode |
+
+---
+
+## Quick reference card
+
+```
+MOVEMENT          ENTERING INSERT     EDITING
+gg  top           i  before cursor    dd   delete line
+G   bottom        a  after cursor     yy   yank line
+0   line start    I  line start       p    paste below
+$   line end      A  line end         u    undo
+w   next word     o  line below       Ctrl-r  redo
+b   prev word     O  line above       x    delete char
+5G  line 5        Esc back to Normal  .    repeat last change
+
+SEARCH            SAVE/QUIT           SUBSTITUTE
+/foo  forward     :w    save          :s/old/new/g   line
+?foo  backward    :q    quit          :%s/old/new/g  file
+n     next        :wq   save+quit     :%s/old/new/gc confirm
+N     previous    :q!   discard
+*     word fwd    ZZ    save+quit
+```
+
+---
+
+## Quiz
+
+<Quiz
+  title="Vim & Vim Motions"
+  pass={70}
+  showVimToggle={false}
+  questions={[
+    {
+      type: "multiple",
+      question: "You just opened a file in Vim and want to start typing text. Which key do you press first?",
+      options: [
+        "Esc",
+        "i",
+        ":",
+        "v",
+      ],
+      correctIndex: 1,
+      explanation:
+        "Vim starts in Normal mode where keypresses are commands, not text. " +
+        "Press `i` to enter Insert mode before you can type. " +
+        "`Esc` returns to Normal mode, `:` opens Command mode, and `v` starts Visual mode.",
+    },
+    {
+      type: "multiple",
+      question: "Which command saves the file AND quits Vim in one step?",
+      options: [
+        ":q",
+        ":w",
+        ":wq",
+        ":q!",
+      ],
+      correctIndex: 2,
+      explanation:
+        "`:wq` writes (saves) then quits. " +
+        "`:q` quits but fails if there are unsaved changes. " +
+        "`:w` saves without quitting. " +
+        "`:q!` quits and discards all unsaved changes.",
+    },
+    {
+      type: "multiple",
+      question: "In Normal mode, which key sequence jumps to the very first line of the file?",
+      options: [
+        "G",
+        "gg",
+        "0",
+        "^",
+      ],
+      correctIndex: 1,
+      explanation:
+        "`gg` jumps to the top of the file (line 1). " +
+        "`G` jumps to the bottom. " +
+        "`0` moves to the start of the current line (column 0). " +
+        "`^` moves to the first non-blank character of the current line.",
+    },
+    {
+      type: "bash",
+      question:
+        "Write the Vim command-mode substitution that replaces every occurrence of the word `foo` " +
+        "with `bar` across the entire file.",
+      hint: "You need a range for the whole file, the `s` command, and the global flag.",
+      expectedAnswer: ":%s/foo/bar/g",
+      explanation:
+        "`%` is the range meaning 'every line in the file'. " +
+        "`s/foo/bar/` replaces the first match per line. " +
+        "Adding `/g` (global) replaces all matches on each line. " +
+        "Together `:%s/foo/bar/g` is the standard whole-file replace.",
+    },
+    {
+      type: "multiple",
+      question: "What does the `o` key do in Normal mode?",
+      options: [
+        "Moves the cursor to the next word",
+        "Opens a new line below the current line and enters Insert mode",
+        "Opens a new line above the current line and enters Insert mode",
+        "Pastes the yanked text below the current line",
+      ],
+      correctIndex: 1,
+      explanation:
+        "`o` (lowercase) opens a new line below and drops you into Insert mode. " +
+        "`O` (uppercase) does the same but above the current line. " +
+        "Neither `o` nor `O` is related to paste — that's `p` / `P`.",
+    },
+    {
+      type: "multiple",
+      question: "You want to delete the next 3 lines including the current one. What do you type in Normal mode?",
+      options: [
+        "3x",
+        "3dd",
+        "d3",
+        "3D",
+      ],
+      correctIndex: 1,
+      explanation:
+        "`3dd` means 'repeat `dd` (delete line) 3 times'. " +
+        "The count prefix always multiplies the motion or command that follows. " +
+        "`3x` deletes 3 characters. `d3` is incomplete. `3D` is not a valid command.",
+    },
+    {
+      type: "bash",
+      question:
+        "Write the Normal-mode key sequence (as you would type it) to yank (copy) 5 lines starting from the current line.",
+      hint: "Combine a count with the yank-line command.",
+      expectedAnswer: "5yy",
+      explanation:
+        "`yy` yanks the current line. Prefixing with a count `5yy` yanks 5 lines. " +
+        "After this you can move anywhere and press `p` to paste them below the cursor.",
+    },
+    {
+      type: "multiple",
+      question: "Which key in Normal mode moves the cursor to the end of the current line?",
+      options: [
+        "0",
+        "^",
+        "$",
+        "G",
+      ],
+      correctIndex: 2,
+      explanation:
+        "`$` moves to the end of the line — think of it as the regex anchor for 'end'. " +
+        "`0` goes to column 0 (absolute start). " +
+        "`^` goes to the first non-whitespace character. " +
+        "`G` jumps to the last line of the file.",
+    },
+  ]}
+/>
