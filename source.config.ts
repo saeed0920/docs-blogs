@@ -23,14 +23,17 @@ import { metaSchema, pageSchema } from "fumadocs-core/source/schema";
 export const lpic1 = defineDocs({
   dir: "content/lpic1",
 });
+export const gitPosts = defineDocs({
+  dir: "content/git",
+});
 
 export const blogPosts = defineCollections({
   type: "doc",
   dir: "content/blog",
 });
-
-export default defineConfig({
-  mdxOptions: {
-    // MDX options
-  },
+export const puzzleyPosts = defineCollections({
+  type: "doc",
+  dir: "content/puzzley",
 });
+
+export default defineConfig();

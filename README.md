@@ -48,9 +48,11 @@ resources:
 
 - [] Static build for nextjs and config with webpack
 - [] Front course
-- [] Signal summery month
+- [x] Signal summery month
 - [x] Proxy or permission layout for signal && puzzley
 - [] Git workshop docs
 - [] Domjduge documents
 - [x] Try to create blogs : Add BCPC - Charbug - or anything you want
 - [] Create post in linkdin
+- [] Add in github and build with github pages
+- [] Remove the puzzley stuff ?!

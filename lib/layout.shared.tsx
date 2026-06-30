@@ -16,6 +16,11 @@ export function baseOptions(): BaseLayoutProps {
         secondary: false,
       },
       {
+        text: "Git",
+        url: "/git",
+        active: 'none',
+      },
+      {
         text: "Blog",
         url: "/blog",
       },

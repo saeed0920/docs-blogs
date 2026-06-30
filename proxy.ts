@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isMarkdownPreferred, rewritePath } from "fumadocs-core/negotiation";
-import { docsRoute, lpic1Route, privetPath } from "@/lib/shared";
+import { docsRoute, gitRoute, lpic1Route, privetPath } from "@/lib/shared";
 import { jwtVerify } from "jose";
 
 const SECRET = new TextEncoder().encode(process.env.DOCS_SECRET!);
 
 const { rewrite: rewriteDocs } = rewritePath(
-  `${docsRoute}{/*path}`,
+  `${gitRoute}{/*path}`,
   `${lpic1Route}{/*path}`,
 );
 const { rewrite: rewriteSuffix } = rewritePath(
-  `${docsRoute}{/*path}.md`,
+  `${gitRoute}{/*path}.md`,
   `${lpic1Route}{/*path}.md`,
 );
 
