@@ -12,17 +12,20 @@ export function baseOptions(): BaseLayoutProps {
       {
         text: "Lpic-1",
         url: "/lpic1",
-        // secondary items will be displayed differently on navbar
-        secondary: false,
+      },
+      {
+        text: "FrontEnd",
+        url: "/front",
       },
       {
         text: "Git",
         url: "/git",
-        active: 'none',
       },
       {
         text: "Blog",
         url: "/blog",
+        active: "nested-url",
+        secondary: false,
       },
     ],
   };

@@ -26,6 +26,9 @@ export const lpic1 = defineDocs({
 export const gitPosts = defineDocs({
   dir: "content/git",
 });
+export const FrontPosts = defineDocs({
+  dir: "content/front",
+});
 
 export const blogPosts = defineCollections({
   type: "doc",

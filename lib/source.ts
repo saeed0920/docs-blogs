@@ -1,7 +1,7 @@
-import { lpic1, blogPosts, gitPosts, puzzleyPosts } from "collections/server";
+import { lpic1, blogPosts, gitPosts, puzzleyPosts , FrontPosts } from "collections/server";
 import { loader } from "fumadocs-core/source";
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
-import { docsRoute, lpic1Route, gitRoute } from "./shared";
+import { lpic1Route, gitRoute, frontRoute } from "./shared";
 import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
 
 // See https://fumadocs.dev/docs/headless/source-api for more info
@@ -14,6 +14,11 @@ export const source = loader({
 export const git = loader({
   baseUrl: gitRoute,
   source: gitPosts?.toFumadocsSource(),
+  plugins: [lucideIconsPlugin()],
+});
+export const front = loader({
+  baseUrl: frontRoute,
+  source: FrontPosts?.toFumadocsSource(),
   plugins: [lucideIconsPlugin()],
 });
 
