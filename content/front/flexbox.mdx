@@ -1,0 +1,274 @@
+---
+title: Flexbox
+description: Learn CSS Flexbox from the ground up — concepts, properties, and how they work together.
+---
+
+# Flexbox
+
+Flexbox (Flexible Box Layout) is a one-dimensional CSS layout model. It's built for arranging items in a single direction — a row or a column — and distributing space between them, even when their size is unknown or dynamic.
+
+## 1. Activating Flexbox
+
+Flexbox is turned on with one line on a **parent** element:
+
+```css
+.container {
+  display: flex;
+}
+```
+
+Every direct child of `.container` instantly becomes a **flex item**. They line up in a row by default, and their `width` behavior changes — this is the part that surprises people coming from block/inline layout.
+
+## 2. The Two Axes
+
+This is the single most important concept in Flexbox. There are always two axes:
+
+- **Main axis** — the direction items are laid out along
+- **Cross axis** — perpendicular to the main axis
+
+The main axis direction is set with `flex-direction` on the container:
+
+```css
+.container {
+  display: flex;
+  flex-direction: row; /* default: main axis is horizontal, left to right */
+}
+```
+
+Other values:
+
+```css
+flex-direction: row-reverse; /* horizontal, right to left */
+flex-direction: column; /* vertical, top to bottom */
+flex-direction: column-reverse; /* vertical, bottom to top */
+```
+
+Every alignment property below behaves _relative to the current main axis_ — so switching `row` to `column` flips what `justify-content` and `align-items` actually do.
+
+## 3. Container Properties
+
+These go on the **parent** (the element with `display: flex`).
+
+### `justify-content` — alignment on the main axis
+
+```css
+.container {
+  display: flex;
+  justify-content: flex-start; /* default: items packed at the start */
+  justify-content: flex-end; /* packed at the end */
+  justify-content: center; /* packed in the center */
+  justify-content: space-between; /* first/last touch edges, equal gaps between */
+  justify-content: space-around; /* equal space around each item */
+  justify-content: space-evenly; /* truly equal space everywhere, including edges */
+}
+```
+
+### `align-items` — alignment on the cross axis
+
+```css
+.container {
+  display: flex;
+  align-items: stretch; /* default: items stretch to fill container height */
+  align-items: flex-start; /* items align to the top */
+  align-items: flex-end; /* items align to the bottom */
+  align-items: center; /* items align to the vertical center */
+  align-items: baseline; /* items align by their text baseline */
+}
+```
+
+### `flex-wrap` — allow items to wrap onto new lines
+
+```css
+.container {
+  display: flex;
+  flex-wrap: nowrap; /* default: everything squeezes onto one line */
+  flex-wrap: wrap; /* items wrap onto multiple lines as needed */
+  flex-wrap: wrap-reverse;
+}
+```
+
+### `align-content` — alignment of wrapped lines (only matters with `flex-wrap: wrap` and multiple lines)
+
+```css
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: space-between; /* distributes the *rows* themselves, not individual items */
+}
+```
+
+### `gap` — space between items
+
+```css
+.container {
+  display: flex;
+  gap: 1rem; /* both row and column gap */
+  row-gap: 1rem; /* vertical gap only */
+  column-gap: 0.5rem; /* horizontal gap only */
+}
+```
+
+### Shorthand for direction + wrap
+
+```css
+.container {
+  display: flex;
+  flex-flow: row wrap; /* flex-direction + flex-wrap combined */
+}
+```
+
+## 4. Item Properties
+
+These go on the **children** (the flex items themselves).
+
+### `flex-grow` — how much an item expands to fill extra space
+
+```css
+.item {
+  flex-grow: 0; /* default: don't grow beyond natural size */
+}
+
+.item-wide {
+  flex-grow: 1; /* takes up any leftover space in the row */
+}
+```
+
+If two items both have `flex-grow: 1`, they split the leftover space equally. If one has `flex-grow: 2`, it takes twice as much of the leftover space as a sibling with `flex-grow: 1`.
+
+### `flex-shrink` — how much an item shrinks when space is tight
+
+```css
+.item {
+  flex-shrink: 1; /* default: items shrink proportionally to fit */
+}
+
+.item-no-shrink {
+  flex-shrink: 0; /* this item keeps its size, even if the row overflows */
+}
+```
+
+### `flex-basis` — the item's starting size, before growing/shrinking is applied
+
+```css
+.item {
+  flex-basis: 200px; /* start at 200px, then grow/shrink from there */
+  flex-basis: auto; /* default: use the item's width/height */
+}
+```
+
+### `flex` — shorthand for `flex-grow`, `flex-shrink`, `flex-basis`
+
+```css
+.item {
+  flex: 1; /* same as: flex-grow:1  flex-shrink:1  flex-basis:0% */
+  flex: 0 0 250px; /* fixed size: never grow, never shrink, base 250px */
+  flex: 1 1 auto; /* grow and shrink freely, starting from natural size */
+}
+```
+
+`flex: 1` is the one you'll use constantly — it means "take an equal share of whatever space is left."
+
+### `align-self` — override `align-items` for one specific item
+
+```css
+.container {
+  display: flex;
+  align-items: flex-start;
+}
+
+.item-special {
+  align-self: center; /* this one item ignores the container's align-items */
+}
+```
+
+### `order` — change the visual order without touching HTML
+
+```css
+.item {
+  order: 0; /* default; items with the same order stay in source order */
+}
+
+.item-first {
+  order: -1; /* moves visually before items with order: 0 */
+}
+```
+
+## 5. Putting It Together — a Simple Layout
+
+```css
+.navbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.navbar .logo {
+  flex-shrink: 0; /* never shrink the logo */
+}
+
+.navbar .links {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap; /* let links wrap on small screens */
+}
+```
+
+```html
+<nav class="navbar">
+  <div class="logo">MySite</div>
+  <div class="links">
+    <a href="#">Home</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </div>
+</nav>
+```
+
+Here, `justify-content: space-between` pushes the logo and links apart, `align-items: center` vertically centers everything, and `flex-wrap` on `.links` keeps things usable on small screens.
+
+## 6. Common Beginner Mistakes
+
+- **Forgetting `display: flex` on the parent** — item properties (`flex-grow`, `align-self`, etc.) do nothing without it.
+- **Confusing `justify-content` and `align-items`** — remember: `justify-content` = main axis, `align-items` = cross axis. Swap `flex-direction` to `column` and their effective directions swap too.
+- **Expecting `flex-wrap` by default** — items squeeze onto one line and shrink unless you explicitly set `flex-wrap: wrap`.
+- **Setting `width` on a `flex: 1` item** — a fixed `width` fights with `flex-grow`/`flex-basis`. Prefer `flex-basis` or `min-width`/`max-width` instead.
+
+## Quick Reference
+
+**Container (parent) properties:**
+
+| Property          | Purpose                                     |
+| ----------------- | ------------------------------------------- |
+| `display: flex`   | activates flexbox                           |
+| `flex-direction`  | sets the main axis (row / column)           |
+| `justify-content` | aligns items on the main axis               |
+| `align-items`     | aligns items on the cross axis              |
+| `flex-wrap`       | allows items to wrap to new lines           |
+| `align-content`   | aligns wrapped lines (needs multiple lines) |
+| `gap`             | space between items                         |
+
+**Item (child) properties:**
+
+| Property      | Purpose                                   |
+| ------------- | ----------------------------------------- |
+| `flex-grow`   | how much extra space this item takes      |
+| `flex-shrink` | how much this item shrinks under pressure |
+| `flex-basis`  | starting size before grow/shrink          |
+| `flex`        | shorthand for grow/shrink/basis           |
+| `align-self`  | overrides `align-items` for one item      |
+| `order`       | changes visual order                      |
+
+## Practice Exercise
+
+Build a 3-column layout where:
+
+1. The container uses `display: flex`
+2. The first column is a fixed 200px sidebar that never shrinks
+3. The second column takes up all remaining space (`flex: 1`)
+4. The third column is 150px and also never shrinks
+5. All three are vertically centered and have a 1rem gap between them
+
+Once that works, change `flex-direction` to `column` and see how `justify-content` and `align-items` swap roles.

@@ -1,0 +1,287 @@
+---
+title: CSS Tricks
+description: Practical, real-world pure CSS tricks — no frameworks, no JavaScript.
+---
+
+# CSS Tricks (Pure CSS)
+
+A collection of practical CSS tricks that solve real problems with zero JavaScript and zero dependencies.
+
+## 1. `:has()` — The Parent Selector
+
+CSS finally has a way to style a parent based on its children:
+
+```css
+/* style a form group when its input is invalid */
+.form-group:has(input:invalid) {
+  border-color: red;
+}
+
+/* style a card differently if it contains an image */
+.card:has(img) {
+  padding-top: 0;
+}
+```
+
+This eliminates a huge number of cases that used to require JavaScript.
+
+## 2. `clamp()` — Fluid Sizing Without Media Queries
+
+`clamp(min, preferred, max)` lets a value scale with the viewport but never go below or above set limits:
+
+```css
+h1 {
+  font-size: clamp(1.5rem, 4vw + 1rem, 3rem);
+}
+
+.container {
+  width: clamp(300px, 90%, 1200px);
+}
+```
+
+One line replaces several `@media` breakpoints for typography and fluid widths.
+
+## 3. `aspect-ratio` — No More Padding-Top Hacks
+
+The old trick for maintaining video/image ratios used `padding-top: 56.25%`. Now:
+
+```css
+.video-wrapper {
+  aspect-ratio: 16 / 9;
+}
+
+img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+```
+
+## 4. `object-fit` — Image Cropping Without a Backend
+
+Control how an image fills its box without distorting it:
+
+```css
+img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;    /* crops to fill, keeps aspect ratio */
+  object-position: center top; /* choose which part stays visible */
+}
+```
+
+## 5. CSS Variables (Custom Properties) for Theming
+
+```css
+:root {
+  --color-primary: #16a34a;
+  --spacing-md: 1rem;
+}
+
+.button {
+  background: var(--color-primary);
+  padding: var(--spacing-md);
+}
+
+[data-theme="dark"] {
+  --color-primary: #4ade80;
+}
+```
+
+Variables cascade and can be overridden per-scope — this is how most dark-mode toggles work without touching JS beyond a class swap.
+
+## 6. `currentColor` — Inherit Text Color into SVG/Borders
+
+```css
+.icon {
+  fill: currentColor; /* SVG icon matches the surrounding text color */
+}
+
+.badge {
+  color: #16a34a;
+  border: 1px solid currentColor; /* border automatically matches text color */
+}
+```
+
+## 7. Truncating Text with an Ellipsis
+
+Single line:
+
+```css
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+```
+
+Multi-line clamp:
+
+```css
+.clamp-3-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+```
+
+## 8. `:is()` and `:where()` — Shorter Selector Lists
+
+```css
+/* instead of repeating the same descendant selector */
+:is(h1, h2, h3) {
+  font-weight: 700;
+}
+
+/* :where() does the same but with zero specificity, easy to override */
+:where(article a) {
+  color: var(--color-primary);
+}
+```
+
+`:where()` is useful for base/reset styles you want consumers of your CSS to be able to override without `!important`.
+
+## 9. Scroll Snapping
+
+Native carousel/gallery behavior with no JS:
+
+```css
+.gallery {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.gallery img {
+  scroll-snap-align: center;
+  flex-shrink: 0;
+}
+```
+
+## 10. `backdrop-filter` — Frosted Glass Effect
+
+```css
+.modal-overlay {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+```
+
+Instant "glassmorphism" — blurs whatever is behind the element.
+
+## 11. `@container` — Component-Level Responsiveness
+
+Media queries respond to the viewport. Container queries respond to a *parent's* size — critical for reusable components that appear in different-width contexts:
+
+```css
+.card-wrapper {
+  container-type: inline-size;
+}
+
+@container (min-width: 400px) {
+  .card {
+    flex-direction: row;
+  }
+}
+```
+
+The `.card` layout changes based on its own container's width, not the whole page.
+
+## 12. `gap` Works in Grid Too (Not Just Flexbox)
+
+```css
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+```
+
+`auto-fit` + `minmax()` creates a fully responsive grid with zero media queries — columns automatically wrap based on available space.
+
+## 13. `accent-color` — Style Native Form Controls Instantly
+
+```css
+input[type="checkbox"],
+input[type="radio"],
+progress {
+  accent-color: var(--color-primary);
+}
+```
+
+One line themes checkboxes, radios, and progress bars to match your brand — no custom-built replacements needed.
+
+## 14. `::selection` — Style Highlighted Text
+
+```css
+::selection {
+  background: var(--color-primary);
+  color: white;
+}
+```
+
+## 15. `content-visibility` — Free Rendering Performance
+
+For long pages with off-screen sections, tell the browser to skip rendering work until they're needed:
+
+```css
+.long-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1000px; /* estimated height to avoid layout jumps */
+}
+```
+
+Big performance win on long articles, changelogs, or docs pages with many sections.
+
+## 16. `inset` — Shorthand for `top`/`right`/`bottom`/`left`
+
+```css
+.overlay {
+  position: absolute;
+  inset: 0; /* same as top:0; right:0; bottom:0; left:0; */
+}
+
+.badge {
+  position: absolute;
+  inset: 0 0 auto auto; /* top:0, right:0, bottom:auto, left:auto */
+}
+```
+
+## 17. Sticky Table Headers
+
+```css
+thead th {
+  position: sticky;
+  top: 0;
+  background: white; /* needed — sticky elements need an opaque background */
+  z-index: 1;
+}
+```
+
+## Quick Reference
+
+| Feature | Solves |
+|---|---|
+| `:has()` | style a parent based on its children |
+| `clamp()` | fluid sizing without breakpoints |
+| `aspect-ratio` | maintain ratios without padding hacks |
+| `object-fit` | crop images without distortion |
+| CSS variables | theming, dark mode |
+| `currentColor` | sync borders/icons with text color |
+| `text-overflow: ellipsis` | truncate text |
+| `:is()` / `:where()` | shorter, cleaner selectors |
+| `scroll-snap-type` | native carousels |
+| `backdrop-filter` | frosted glass effect |
+| `@container` | component-level responsiveness |
+| `auto-fit`/`minmax()` | responsive grids without media queries |
+| `accent-color` | theme native form controls |
+| `content-visibility` | render performance on long pages |
+| `inset` | shorthand positioning |
+
+## Practice Exercise
+
+Build a responsive card grid where:
+1. Cards use `grid-template-columns: repeat(auto-fit, minmax(250px, 1fr))`
+2. Each card image uses `aspect-ratio: 16 / 9` and `object-fit: cover`
+3. Card titles truncate to 2 lines with `-webkit-line-clamp`
+4. The whole grid theme (accent color) is driven by one CSS variable in `:root`
