@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { toShamsi } from "@/lib/date";
 import { InlineTOC } from "fumadocs-ui/components/inline-toc";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { blog } from "@/lib/source";
+import DefaultIcon from "@/components/defaultIcon";
+
 
 export default async function Page(props: {
   params: Promise<{ slug: string }>;
@@ -11,10 +14,9 @@ export default async function Page(props: {
   const params = await props.params;
   const page = blog.getPage([params.slug]);
   if (!page) notFound();
-
   const Mdx = page.data.body;
   const dir = page.data.dir ?? "ltr";
-
+  const image = page.data?.image ;
   return (
     <>
       <Link
@@ -25,10 +27,32 @@ export default async function Page(props: {
       </Link>
       <div
         dir={dir}
-        className="w-full flex items-center justify-between max-w-[1400px] mx-auto px-4 py-12 rounded-xl border md:px-8"
+        className="w-full flex flex-col items-start justify-between max-w-[1400px] mx-auto px-4 py-12 rounded-xl border md:px-8"
       >
+        <div className="relative w-full h-64 md:h-80 mb-6 rounded-lg overflow-hidden ">
+          {image ? 
+          <Image
+            src={image}
+            alt={page.data.title}
+            fill
+            sizes="(max-width: 1400px) 100vw, 1400px"
+            className="object-contain"
+          /> : <DefaultIcon className="size-full"/>}
+        </div>
         <h1 className="mb-2 text-3xl font-bold">{page.data.title}</h1>
         <p className="mb-4 text-fd-muted-foreground">{page.data.description}</p>
+        {page.data?.tags && page.data?.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {page.data?.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-xs px-2 py-1 rounded-full border border-fd-border text-fd-muted-foreground"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <article
         dir={dir}
@@ -49,7 +73,7 @@ export default async function Page(props: {
                 Written by
               </p>
             )}
-            <p className="font-medium">{page.data.author}</p>
+            <p className="font-medium">{page.data?.author}</p>
           </div>
           <div>
             {dir === "rtl" ? (
@@ -68,21 +92,17 @@ export default async function Page(props: {
     </>
   );
 }
-
 export function generateStaticParams(): { slug: string }[] {
   return blog.getPages().map((page) => ({
     slug: page.slugs[0],
   }));
 }
-
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
 }) {
   const params = await props.params;
   const page = blog.getPage([params.slug]);
-
   if (!page) notFound();
-
   return {
     title: page.data.title,
     description: page.data.description,
