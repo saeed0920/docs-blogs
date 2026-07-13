@@ -167,6 +167,64 @@ grep -w "root" /etc/passwd           # whole-word match
 
 ---
 
+## `find` — Search for files
+
+Unlike `grep`, which searches file _content_, `find` searches the **filesystem tree** for files/directories matching criteria (name, type, size, time, permissions).
+
+```bash
+find /etc -name "*.conf"          # find by name (case-sensitive)
+find /etc -iname "*.conf"         # case-insensitive name match
+find . -type f                    # files only
+find . -type d                    # directories only
+find / -size +100M                # files larger than 100MB
+find /home -mtime -7              # modified in the last 7 days
+find /home -mtime +30             # modified more than 30 days ago
+find /tmp -empty                  # empty files/directories
+find / -perm 644                  # exact permission match
+find / -user saeed                # owned by user saeed
+find / -maxdepth 2 -name "*.log"  # limit recursion depth
+```
+
+ Acting on results: `-exec` and `-delete`
+
+```bash
+# Delete all .tmp files
+find /tmp -name "*.tmp" -delete
+
+# Run a command on each match ({} = current file, \; ends the command)
+find . -name "*.log" -exec rm {} \;
+
+# Batch mode (faster, passes multiple files at once, like xargs)
+find . -name "*.log" -exec rm {} +
+
+# Combine with grep: find files, then search their contents
+find . -name "*.php" -exec grep -l "TODO" {} \;
+```
+
+### Combining criteria
+
+```bash
+find / -name "*.sh" -a -perm -u+x     # AND (default): .sh files that are executable
+find / -name "*.jpg" -o -name "*.png" # OR: jpg or png
+find / -not -name "*.txt"             # NOT
+find /var/log -type f -size +10M -mtime -1   # large AND recently modified
+```
+
+| flag        | meaning                              |
+| ----------- | ------------------------------------ |
+| `-name`     | match by filename (case-sensitive)   |
+| `-iname`    | match by filename (case-insensitive) |
+| `-type`     | `f` file, `d` directory, `l` symlink |
+| `-size`     | `+`/`-` size, e.g. `+100M`, `-1k`    |
+| `-mtime`    | modified N days ago (`+`/`-`)        |
+| `-perm`     | permission match                     |
+| `-user`     | owned by user                        |
+| `-maxdepth` | limit how deep to recurse            |
+| `-exec`     | run a command on each match          |
+| `-delete`   | delete matches directly              |
+
+---
+
 ## `sed` — Stream editor
 
 `sed` reads input line by line, applies a script, and prints the result. The most common use is **substitution**.

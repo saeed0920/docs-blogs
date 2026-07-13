@@ -56,3 +56,4 @@ resources:
 - [] Create post in linkdin
 - [] Add in github and build with github pages
 - [] Remove the puzzley stuff ?!
+- [] make the docs order
