@@ -1,0 +1,364 @@
+---
+title: Last Things!
+author: Saeed0920
+date: 2026-07-16
+---
+
+import Quiz from "@/components/quiz";
+
+---
+
+## Grid
+
+CSS Grid is a **two-dimensional** layout system — rows and columns at the same time.
+Flexbox is one-dimensional; Grid is the tool once you need both axes.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 16px;
+}
+```
+
+- `fr` — a _fraction_ of the leftover space in the container, after fixed-size tracks are subtracted.
+- `repeat(3, 1fr)` — shorthand for `1fr 1fr 1fr`.
+- `gap` — replaces the old margin-hack spacing between grid/flex items.
+
+### Naming areas
+
+```css
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-areas:
+    "sidebar header"
+    "sidebar main";
+}
+
+.sidebar {
+  grid-area: sidebar;
+}
+.header {
+  grid-area: header;
+}
+.main {
+  grid-area: main;
+}
+```
+
+`grid-template-areas` lets you literally draw the layout as ASCII art — each string is a row,
+each word a column. Very readable for dashboard/app shells.
+
+### Responsive grids without media queries
+
+```css
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+```
+
+- `auto-fit` collapses empty tracks, stretching existing items to fill the row.
+- `auto-fill` keeps empty tracks (useful when you want consistent card width even with few items).
+- `minmax(220px, 1fr)` — never smaller than 220px, never bigger than its fair share.
+
+### Alignment cheatsheet
+
+| Property                      | Axis           | Affects                 |
+| ----------------------------- | -------------- | ----------------------- |
+| `justify-items`               | row (inline)   | all items, individually |
+| `align-items`                 | column (block) | all items, individually |
+| `justify-content`             | row            | the whole track set     |
+| `align-content`               | column         | the whole track set     |
+| `justify-self` / `align-self` | either         | one specific item       |
+
+---
+
+## The Checkbox + Selector Trick (Popups Without JS)
+
+A hidden checkbox plus the `:checked` pseudo-class and the general sibling combinator (`~`)
+gives you toggle-able UI — dropdowns, modals, accordions — with **zero JavaScript**.
+
+```html
+<div class="popup-wrapper">
+  <input type="checkbox" id="toggle" class="popup-toggle" hidden />
+  <label for="toggle" class="popup-btn">Open menu</label>
+
+  <div class="popup-panel">
+    <p>Hello, I'm the popup content.</p>
+  </div>
+</div>
+```
+
+```css
+.popup-panel {
+  display: none;
+}
+
+.popup-toggle:checked ~ .popup-panel {
+  display: block;
+}
+```
+
+How it works:
+
+1. The checkbox is visually `hidden`, but still receives clicks through its `<label for="toggle">`.
+2. Clicking the label toggles the checkbox's `:checked` state — this is native browser behavior, no JS needed.
+3. `:checked ~ .popup-panel` only matches when the checkbox _is_ checked, and `~` reaches forward to any
+   later sibling in the same parent — not just the immediate next element.
+
+A closing overlay is the same idea:
+
+```css
+.popup-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+}
+
+.popup-toggle:checked ~ .popup-overlay {
+  display: block;
+}
+```
+
+Limitations worth knowing: state doesn't persist across reloads, you can't easily animate `display: none`
+(swap to `opacity`/`visibility` + `transition` if you need a fade), and deeply nested toggles get messy fast —
+past 2–3 levels, reach for JS/Alpine instead.
+
+---
+
+## CSS Priority (Specificity & the Cascade)
+
+When multiple rules target the same element, the browser resolves the conflict in this order:
+
+1. **Importance** — `!important` wins over everything (except another later `!important` with higher specificity).
+2. **Origin** — user-agent styles < author styles < inline styles (roughly; layers can reorder this — see below).
+3. **Specificity** — a weighted score per selector.
+4. **Source order** — if specificity ties, the rule that appears _later_ in the stylesheet wins.
+
+### Calculating specificity
+
+Think of it as a 3-part score: `(IDs, classes/attributes/pseudo-classes, elements/pseudo-elements)`.
+
+| Selector             | Score  | Why                                             |
+| -------------------- | ------ | ----------------------------------------------- |
+| `div`                | 0,0,1  | one element                                     |
+| `.card`              | 0,1,0  | one class                                       |
+| `#header`            | 1,0,0  | one ID                                          |
+| `div.card`           | 0,1,1  | element + class                                 |
+| `#header .title`     | 1,1,0  | ID + class                                      |
+| `a:hover`            | 0,1,1  | pseudo-class counts as a class                  |
+| `style="color: red"` | inline | beats all selectors, loses only to `!important` |
+
+Higher tuple wins, compared left to right — a single ID (`1,0,0`) beats a hundred classes (`0,100,0`).
+
+### `!important`
+
+```css
+.button {
+  color: blue !important;
+}
+```
+
+Use sparingly — it breaks the normal cascade and makes future overrides need `!important` too,
+which spirals. Mostly acceptable for utility classes or overriding third-party CSS you can't edit.
+
+### Cascade layers (`@layer`) — the modern fix
+
+Cascade layers let you control priority **by layer order**, independent of specificity:
+
+```css
+@layer reset, base, components, utilities;
+
+@layer reset {
+  * {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .button {
+    color: blue;
+  }
+}
+
+@layer utilities {
+  .text-red {
+    color: red !important;
+  } /* still wins by importance */
+}
+```
+
+Rules: layers declared later win over earlier layers, **regardless of specificity inside them** —
+a `div` selector in `utilities` beats `#header .title .btn.button` in `components`. Unlayered styles
+count as the highest-priority layer of all. This is what lets Tailwind's utility classes reliably
+override component classes without a specificity war.
+
+---
+
+## Transform
+
+`transform` repositions/reshapes an element **without affecting layout flow** — no reflow of siblings.
+
+### 2D transforms
+
+```css
+.box {
+  transform: translate(20px, 10px) rotate(15deg) scale(1.1) skew(5deg);
+}
+```
+
+- `translate(x, y)` — move.
+- `rotate(deg)` — spin around the transform-origin.
+- `scale(x, y?)` — resize (1 = 100%, no visual change).
+- `skew(x, y)` — shear/slant.
+
+Order matters — transforms apply right-to-left conceptually as nested operations, so
+`translate(...) rotate(...)` gives a different result than `rotate(...) translate(...)`.
+
+### `transform-origin`
+
+```css
+.box {
+  transform-origin: top left; /* default is 50% 50% (center) */
+  transform: rotate(45deg);
+}
+```
+
+Controls the pivot point for `rotate`/`scale`/`skew`. A button that "grows from the bottom"
+on hover is just `transform-origin: bottom` + `scale(1.1)`.
+
+### 3D transforms
+
+```css
+.scene {
+  perspective: 800px; /* on the PARENT, sets viewing distance */
+}
+
+.card {
+  transform: rotateY(20deg);
+  transform-style: preserve-3d;
+}
+```
+
+- `perspective` on the parent creates the "camera distance" — smaller values = more dramatic depth.
+- `rotateX / rotateY / rotateZ` — rotate around each axis.
+- `transform-style: preserve-3d` — lets nested children keep their own 3D position instead of flattening.
+
+### Pairing with `transition`
+
+```css
+.card {
+  transition: transform 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+```
+
+Animating `transform` (and `opacity`) is cheap — the browser can composite them on the GPU without
+triggering layout/paint, unlike animating `width`, `top`, or `margin`.
+
+---
+
+## Quiz
+
+<Quiz
+  title="Grid, Priority & Transform — quick quiz"
+  passScore={70}
+  showVimToggle={true}
+  questions={[
+    {
+      type: "multiple",
+      question:
+        "What does `fr` represent in `grid-template-columns: 1fr 2fr;`?",
+      options: [
+        "A fixed pixel width",
+        "A fraction of the leftover space in the grid container",
+        "The number of rows",
+        "A percentage of the viewport",
+      ],
+      correctIndex: 1,
+      explanation:
+        "`fr` divides the *remaining* space after fixed-size tracks are subtracted. " +
+        "`1fr 2fr` splits leftover space into 3 parts: the second column gets twice the first.",
+    },
+    {
+      type: "bash",
+      question:
+        "Write the `grid-template-columns` value that creates a responsive grid of cards, " +
+        "each at least 200px wide, filling the row, and collapsing empty tracks when there " +
+        "aren't enough items.",
+      hint: "Combine `repeat()`, `auto-fit`, and `minmax()`.",
+      expectedAnswer: "repeat(auto-fit, minmax(200px, 1fr))",
+      explanation:
+        "`auto-fit` collapses tracks that have no items, letting existing cards stretch to fill " +
+        "the row. Swap to `auto-fill` if you want empty tracks preserved (fixed-width look even " +
+        "with few items).",
+    },
+    {
+      type: "multiple",
+      question:
+        "In the checkbox + selector popup trick, what makes clicking the visible button toggle " +
+        "the hidden checkbox?",
+      options: [
+        "A JavaScript click event listener",
+        'The `<label for="...">` attribute pointing at the checkbox\'s id',
+        "The `:checked` pseudo-class itself",
+        "The `~` sibling combinator",
+      ],
+      correctIndex: 1,
+      explanation:
+        '`<label for="toggle">` is a native HTML association — clicking the label toggles the ' +
+        'checkbox with `id="toggle"` with zero JS. `:checked` and `~` only come into play ' +
+        "*after* the checkbox state changes, to reveal the panel.",
+    },
+    {
+      type: "bash",
+      question:
+        "Calculate the specificity tuple (IDs, classes, elements) for the selector: " +
+        "`#sidebar .nav-item.active a`",
+      hint: "Count IDs, then classes/attributes/pseudo-classes, then elements/pseudo-elements.",
+      expectedAnswer: "1,2,1",
+      explanation:
+        "`#sidebar` = 1 ID. `.nav-item` and `.active` = 2 classes. `a` = 1 element. " +
+        "Result: (1, 2, 1) — this beats any selector with 0 IDs, no matter how many classes it has.",
+    },
+    {
+      type: "multiple",
+      question:
+        "With cascade layers declared as `@layer reset, components, utilities;`, which rule wins " +
+        "if `.button { color: blue; }` is in `components` and `div { color: red; }` is in `utilities`?",
+      options: [
+        "`.button` wins — higher specificity",
+        "`div` wins — later layer beats specificity",
+        "It's a tie, resolved by source order only",
+        "Neither applies — layers disable the cascade",
+      ],
+      correctIndex: 1,
+      explanation:
+        "Layer order overrides specificity entirely: any rule in a later-declared layer wins over " +
+        "any rule in an earlier layer, regardless of how specific the earlier selector is. This is " +
+        "exactly what lets utility layers reliably override component styles.",
+    },
+    {
+      type: "bash",
+      question:
+        "Write the CSS that makes a `.card` grow slightly and lift up 4px on hover, animated " +
+        "smoothly over 0.25s.",
+      hint: "You need a `transition` on the base state and a `transform` on `:hover`.",
+      expectedAnswer:
+        ".card {\n  transition: transform 0.25s ease;\n}\n\n.card:hover {\n  transform: translateY(-4px) scale(1.02);\n}",
+      explanation:
+        "`transition` must live on the base `.card` rule (not `:hover`) so the browser animates " +
+        "both entering and leaving the hover state. Animating `transform` instead of `top`/`margin` " +
+        "keeps it on the GPU compositor — no layout thrashing.",
+    },
+  ]}
+/>
