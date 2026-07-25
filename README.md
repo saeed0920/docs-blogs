@@ -1,59 +1,54 @@
 # docs
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+Personal notes and docs built with
+[Fumadocs](https://github.com/fuma-nama/fumadocs) + Next.js.
 
-Run development server:
+## Develop
 
 ```bash
+npm install
 npm run dev
-# or
-pnpm dev
-# or
-yarn dev
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+Open http://localhost:3000.
+
+## Static build (GitHub Pages)
+
+```bash
+# local static export (no base path)
+npm run build
+npm start
+
+# GitHub Pages project site: https://saeed0920.github.io/docs/
+GITHUB_PAGES=true npm run build
+```
+
+Static files land in `out/`. On push to `main`, `.github/workflows/deploy.yml`
+builds with `GITHUB_PAGES=true` and deploys via GitHub Actions.
+
+Enable Pages in the repo: **Settings → Pages → Source: GitHub Actions**.
 
 ## Explore
 
-In the project, you can see:
+- `lib/source.ts`: content source adapter (`loader()`)
+- `lib/layout.shared.tsx`: shared layout options
 
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
-
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
-
-### Fumadocs MDX
-
-A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
-
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
-
-## Learn More
-
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+| Route            | Description                          |
+| ---------------- | ------------------------------------ |
+| `app/(home)`     | Landing page and blog                |
+| `app/lpic1`      | LPIC-1 docs                          |
+| `app/front`      | Frontend docs                        |
+| `app/git`        | Git docs                             |
 
 ## TODO
 
-- [] Static build for nextjs and config with webpack
+- [x] Static build for nextjs and GitHub Pages
 - [] Front course
 - [x] Signal summery month
-- [x] Proxy or permission layout for signal && puzzley
 - [] Git workshop docs
 - [] Domjduge documents
 - [x] Try to create blogs : Add BCPC - Charbug - or anything you want
 - [] Create post in linkdin
-- [] Add in github and build with github pages
-- [] Remove the puzzley stuff ?!
+- [x] Add in github and build with github pages
+- [x] Remove the puzzley stuff
 - [] make the docs order

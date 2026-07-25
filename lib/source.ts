@@ -1,4 +1,4 @@
-import { lpic1, blogPosts, gitPosts, puzzleyPosts , FrontPosts } from "collections/server";
+import { lpic1, blogPosts, gitPosts, FrontPosts } from "collections/server";
 import { loader } from "fumadocs-core/source";
 import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
 import { lpic1Route, gitRoute, frontRoute } from "./shared";
@@ -25,10 +25,6 @@ export const front = loader({
 export const blog = loader({
   baseUrl: "/blog",
   source: toFumadocsSource(blogPosts, []),
-});
-export const puzzley = loader({
-  baseUrl: "/puzzley",
-  source: toFumadocsSource(puzzleyPosts, []),
 });
 
 export function getPageImage(page: (typeof source)["$inferPage"]) {

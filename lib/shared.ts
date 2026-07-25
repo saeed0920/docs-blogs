@@ -2,7 +2,6 @@ export const appName = "Saeed0920";
 export const docsRoute = "/docs";
 export const lpic1Route = "/lpic1";
 export const gitRoute = "/git";
-export const puzzleRoute = "/puzzley";
 export const frontRoute = "/front";
 
 // fill this with your actual GitHub info, for example:
@@ -11,5 +10,3 @@ export const gitConfig = {
   repo: "docs",
   branch: "main",
 };
-
-export const privetPath = ["/puzzley"];
