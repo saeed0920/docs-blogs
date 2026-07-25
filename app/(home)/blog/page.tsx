@@ -30,7 +30,7 @@ export default function Home() {
               href={post.url}
               dir={post.data?.dir || "ltr"}
               className="group flex mb-5 break-inside-avoid flex-col rounded-xl border border-fd-border bg-fd-card overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-fd-primary/40"
-              
+
             >
               <div className="relative w-full h-40 overflow-hidden bg-fd-secondary">
                 {image ?
@@ -39,7 +39,7 @@ export default function Home() {
                     alt={post.data.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                   : <DefaultIcon className="size-full" />}
               </div>
