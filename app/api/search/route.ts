@@ -1,17 +1,16 @@
-import { source, git } from "@/lib/source";
-import { createFromSource } from "fumadocs-core/search/server";
+import { source, git, front, blog } from "@/lib/source";
 import { createSearchAPI } from "fumadocs-core/search/server";
 
 // Merge both sources and tag each page by section
 const merged = {
-  getPages: () => [...git.getPages(), ...source.getPages()],
+  getPages: () => [...git.getPages(), ...source.getPages(), ...front.getPages(), ...blog.getPages()],
 };
 
 export const { GET } = createSearchAPI("advanced", {
   language: "english",
-  indexes: git.getPages().map((page) => ({
-    title: page.data.title,
-    description: page.data.description,
+  indexes: merged.getPages().map((page) => ({
+    title: page.data?.title,
+    description: page.data?.description,
     url: page.url,
     id: page.url,
     structuredData: page.data.structuredData,
