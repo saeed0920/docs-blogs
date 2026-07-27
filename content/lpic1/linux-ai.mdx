@@ -1,0 +1,100 @@
+---
+title: Using AI as a Linux Assistant
+description: How to use AI tools to translate intent into Linux commands, review configs, and troubleshoot safely — without it replacing your understanding of core commands.
+---
+
+## Using AI as a Linux Assistant
+
+You don't need to memorize every flag or command to work efficiently in Linux. AI assistants (like Claude, ChatGPT, or terminal-integrated tools) can act as a **command translator** and **config reviewer** — turning what you want to do in plain English into safe, working commands.
+
+<Callout type="info">
+This section is about *using* AI as a tool while working in the terminal — it is **not** a bash scripting lesson. The goal is to know *when* and *how* to lean on AI, and how to stay safe doing it.
+</Callout>
+
+### What AI Is Good For in a Linux Workflow
+
+| Use Case                         | Example Prompt                                                              |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| Translating intent → command      | "Show me all files over 500MB modified in the last 7 days"                   |
+| Explaining an unfamiliar command  | "What does this command do: `find / -perm -4000 -type f 2>/dev/null`"         |
+| Debugging an error message        | Paste the exact error + "why is this happening and how do I fix it?"          |
+| Reviewing a config file           | Paste your `sshd_config` and ask "is this hardened? what am I missing?"       |
+| Comparing options                 | "What's the difference between `systemctl restart` and `reload`?"            |
+
+### A Safe Workflow: Ask → Understand → Verify → Run
+
+1. **Ask** the AI for the command in plain language.
+2. **Understand** — ask it to explain what each part/flag does before running it.
+3. **Verify** against the man page (`man <command>`) or `--help`, especially for anything destructive.
+4. **Run** it yourself — never let an assistant execute commands directly on a production system without review.
+
+<Callout type="warn">
+Never blindly copy-paste a command from an AI (or the internet) into a root shell. Commands involving `rm -rf`, piping to `sh`, redirect operators (`>`), or permission changes (`chmod`, `chown`) can cause irreversible damage if misunderstood.
+</Callout>
+
+### Example: Getting Help Without Learning Syntax by Heart
+
+Instead of memorizing `sshd_config` directives, you could ask an AI:
+
+> "I want to disable root login and password auth over SSH, only allow key-based login, and move SSH off the default port to reduce bot noise. What should my `sshd_config` look like?"
+
+The AI can generate something close to the hardened config already shown earlier in this document — and you can cross-check it against the official file to confirm you understand *why* each line matters, not just copy it blindly.
+
+### Where AI Falls Short
+
+| Limitation                                  | Why It Matters                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------ |
+| Doesn't know your exact system state          | It can't see your actual files, running services, or logs unless you paste them |
+| May suggest deprecated or distro-mismatched commands | Always check the command matches your distro (Debian vs RHEL vs Arch) |
+| Can't replace understanding                   | On the LPIC-1 exam, you must know the concepts yourself — no AI in the exam room |
+
+<Callout type="warn">
+For the LPIC-1 exam itself, AI tools are not permitted. Use AI as a **learning accelerator** while studying, not as a crutch that replaces understanding core commands and config files.
+</Callout>
+
+
+### Further Reading
+
+<Callout type="info">
+Want to see how this debate plays out at the highest level of open source? Linus Torvalds (creator of Linux) weighed in directly on whether AI-assisted contributions should be allowed in kernel development:
+
+- **[Linus Torvalds on AI in Linux kernel development](https://lwn.net/ml/all/CAHk-=wi4zC+Ze8e+p3tMv8TtG_80KzsZ1syL9anBtmEh5Z40vg@mail.gmail.com/)** — Torvalds makes clear that Linux does not take an anti-AI stance as a project, and that maintainers who disagree are free to fork or step away. It's a useful real-world example of how a major open-source project is handling the same AI-adoption questions covered in this section.
+</Callout>
+
+### AI Agents vs. AI Chat Assistants
+
+Everything above assumes a simple loop: you ask, the AI answers, you run the command yourself. An **AI agent** goes a step further — instead of just suggesting a command, it can read files, execute shell commands, and iterate on a task on its own, inside a loop of its own reasoning.
+
+<Callout type="info">
+Chat assistants **suggest**. Agents **act**. This distinction matters a lot on a Linux system, because an agent with shell access can modify files, install packages, or change configs without you typing each command yourself.
+</Callout>
+
+| Concept        | Description                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| **Chat assistant** | You copy/paste commands yourself after reviewing them (the workflow described above)          |
+| **Agent**          | The AI itself calls tools (read/write files, run shell commands) to complete a multi-step task |
+| **Harness**        | The framework wrapping the AI model — handling tool-calling, terminal UI, and state — that turns a model into an agent |
+
+### Example: Pi — an Open-Source Terminal Agent
+
+**[Pi](https://github.com/badlogic/pi-mono)** is an open-source terminal-based AI agent harness. It's a useful example for this course because it's transparent about how agents actually work under the hood.
+
+- It runs as a CLI tool and can **read, write, and edit files**, and **run bash commands** directly in your terminal.
+- It's **provider-agnostic** — you can plug in different LLMs (Anthropic, OpenAI, Google, and others) behind one interface.
+- It is explicit that it has **no built-in permission system** — by default, it runs with whatever permissions the user who launched it has. This means an agent like Pi can run `rm`, `chmod`, package installs, or edit `sshd_config` directly, without asking first.
+
+<Callout type="warn">
+Because agents like Pi have no built-in permission guardrails, the project itself recommends running them inside isolation layers — a Docker container, a lightweight Linux VM, or a sandboxed shell — rather than directly against your main system, especially while you're still learning.
+</Callout>
+
+### Why This Matters for a Linux Student
+
+Agents are a preview of where system administration is heading, but they raise the stakes on everything already covered in this document:
+
+- **SSH & key-based auth** — if an agent has access to your machine, treat its credentials/keys with the same care as your own (see the SSH key section above).
+- **Config file discipline** — an agent can edit `sshd_config` or other critical files in seconds; always diff/review changes before restarting a service.
+- **Least privilege** — run agents as a non-root, limited user wherever possible, or inside a container/VM, so a mistake (yours or the agent's) can't touch the whole system.
+
+<Callout type="warn">
+For LPIC-1 purposes: you are expected to understand *why* a config change is safe, not just that an agent made it. Use agents like Pi to accelerate practice, not to skip understanding the underlying system.
+</Callout>

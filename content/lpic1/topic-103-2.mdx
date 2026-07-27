@@ -1,0 +1,385 @@
+---
+title: Streams, Pipes, Redirects & Process Management
+description: Master stdin, stdout, and stderr, control data flow with redirection and pipes, manage foreground/background jobs, monitor and kill processes, and adjust execution priority with nice and renice.
+---
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+## 103.4 Use Streams, Pipes, and Redirects
+
+### The Three Standard Streams
+
+Every Linux process starts with three open file descriptors, each representing a data stream:
+
+| Stream | Name             | File Descriptor | Default Destination |
+| ------ | ---------------- | :--------------: | --------------------- |
+| `stdin`  | Standard Input   | `0`               | Keyboard              |
+| `stdout` | Standard Output  | `1`               | Terminal screen        |
+| `stderr` | Standard Error   | `2`               | Terminal screen        |
+
+```bash
+echo $$   # Shows current shell's PID — every process has these 3 streams open
+```
+
+<Callout type="info">
+By default, both `stdout` and `stderr` print to the terminal, which is why errors and normal output can look identical unless you separate them explicitly.
+</Callout>
+
+---
+
+### Redirection Operators
+
+**Redirect standard output:**
+
+```bash
+command > file.txt      # Overwrite file.txt with output
+command >> file.txt     # Append output to file.txt
+```
+
+**Redirect standard input:**
+
+```bash
+command < file.txt      # Feed file.txt as input to command
+```
+
+**Redirect standard error:**
+
+```bash
+command 2> errors.log       # Redirect only errors to a file
+command 2>> errors.log      # Append errors to a file
+```
+
+**Redirect both stdout and stderr:**
+
+```bash
+command > all_output.log 2>&1     # Classic form (order matters!)
+command &> all_output.log         # Bash shortcut, same effect
+```
+
+<Callout type="warn">
+`2>&1` must come **after** the stdout redirection to work correctly.
+`command 2>&1 > file.txt` does **not** do what you'd expect — it sends errors to the terminal (where stdout currently points) and only stdout to `file.txt`. Always write `command > file.txt 2>&1`.
+</Callout>
+
+**Discard output entirely:**
+
+```bash
+command > /dev/null 2>&1    # Silence all output, useful in scripts and cron jobs
+```
+
+**Worked example:**
+
+```bash
+$ ls /etc /nonexistent > good.txt 2> bad.txt
+$ cat good.txt
+/etc:
+passwd  hosts  fstab  ...
+$ cat bad.txt
+ls: cannot access '/nonexistent': No such file or directory
+```
+
+`good.txt` only receives the normal listing, while the error about the missing directory goes into `bad.txt` — the two streams never mix.
+
+---
+
+### Pipes: Connecting Commands
+
+A **pipe** (`|`) sends the `stdout` of one command directly into the `stdin` of the next — no temporary file needed.
+
+```bash
+ls -l /etc | grep ".conf"
+```
+
+This runs `ls -l /etc`, and instead of printing to the screen, its output becomes the input for `grep ".conf"`.
+
+**Chaining multiple pipes:**
+
+```bash
+cat access.log | grep "404" | sort | uniq -c | sort -rn
+```
+
+**Worked example:**
+
+```bash
+$ cat access.log | grep "404" | sort | uniq -c | sort -rn
+  12 GET /old-page 404
+   3 GET /missing.png 404
+```
+
+Each `|` hands its command's output straight to the next: `grep` filters lines containing "404", `sort` groups identical lines together, `uniq -c` counts them, and the final `sort -rn` orders the counts from highest to lowest — all without ever writing a temp file to disk.
+
+|                 |                                                                        |
+| ----------------- | ------------------------------------------------------------------------ |
+| **Pipe (`\|`)**   | Connects `stdout` of one process to `stdin` of the next (in memory)     |
+| **Redirect (`>`)** | Sends output to/from a **file** on disk                                 |
+
+---
+
+### Summary Table
+
+| Operator | Meaning                                    |
+| -------- | -------------------------------------------- |
+| `>`      | Redirect stdout, overwrite file              |
+| `>>`     | Redirect stdout, append to file              |
+| `<`      | Redirect stdin from a file                   |
+| `2>`     | Redirect stderr, overwrite file              |
+| `2>>`    | Redirect stderr, append to file              |
+| `2>&1`   | Merge stderr into stdout                     |
+| `&>`     | Redirect both stdout and stderr (bash shortcut) |
+| `\|`      | Pipe stdout of one command into stdin of next |
+
+---
+
+## 103.5 Create, Monitor, and Kill Processes
+
+### Foreground vs. Background Jobs
+
+By default, a command runs in the **foreground** and blocks your terminal until it finishes.
+
+**Run a command in the background:**
+
+```bash
+long_running_script.sh &     # The trailing & starts it in the background
+```
+
+**List background/suspended jobs:**
+
+```bash
+jobs
+# [1]+  Running    long_running_script.sh &
+```
+
+**Bring a background job to the foreground:**
+
+```bash
+fg %1        # Resume job number 1 in the foreground
+```
+
+**Send a foreground job to the background:**
+
+1. Press `Ctrl + Z` to **suspend** the current foreground process.
+2. Run `bg %1` to resume it in the background.
+
+```bash
+bg %1        # Resume suspended job 1, but in the background
+```
+
+**Worked example:**
+
+```bash
+$ sleep 300
+^Z
+[1]+  Stopped                 sleep 300
+$ bg %1
+[1]+ sleep 300 &
+$ jobs
+[1]+  Running                 sleep 300 &
+$ fg %1
+sleep 300          # Back in the foreground; terminal blocks until it finishes
+```
+
+Here, `Ctrl + Z` pauses `sleep 300`, `bg %1` resumes it in the background so the terminal is free again, and `fg %1` brings it back to the foreground when you want to wait on it directly.
+
+<Callout type="info">
+`Ctrl + Z` suspends (pauses) a process — it does **not** stop it permanently. Use `bg` to keep it running in the background, or `fg` to bring it back.
+</Callout>
+
+---
+
+### Monitoring Processes
+
+**Snapshot of running processes:**
+
+```bash
+ps aux          # BSD-style: all processes, all users, with extra detail
+ps -ef          # UNIX-style: full listing
+```
+
+**Real-time, interactive view:**
+
+```bash
+top             # Live updating list, sorted by CPU usage by default
+```
+
+|          |                                                                    |
+| -------- | -------------------------------------------------------------------- |
+| **Pros** | `top` is interactive — press `k` to kill, `M` to sort by memory, `q` to quit |
+| **Cons** | Numbers refresh constantly, harder to read for a single snapshot     |
+
+<Callout type="info">
+`htop` is a more user-friendly, color-coded alternative to `top`, though it may need to be installed separately and is not always guaranteed on exam systems.
+</Callout>
+
+**Worked example:**
+
+```bash
+$ ps aux | grep firefox
+user      2481  3.2  5.1  845200 210344 ?       Sl   09:12   0:42 firefox
+user      8823  0.0  0.0   9032   736 pts/1    S+   10:03   0:00 grep firefox
+```
+
+The first column is the **user**, the second is the **PID** — here `2481` is the actual Firefox process, while `8823` is just the `grep` command matching its own text in the process list.
+
+---
+
+### Terminating Processes
+
+Every process has a **PID** (Process ID). Killing a process means sending it a **signal**.
+
+**Kill by PID:**
+
+```bash
+kill 1234              # Sends SIGTERM (15) — a polite request to terminate
+kill -9 1234            # Sends SIGKILL (9) — force kill, cannot be ignored
+kill -SIGHUP 1234        # Sends SIGHUP (1) — often used to reload configs
+```
+
+**Kill by process name:**
+
+```bash
+killall firefox          # Kills all processes matching the name "firefox"
+```
+
+| Signal    | Number | Effect                                             |
+| ----------- | :------: | ----------------------------------------------------- |
+| `SIGHUP`    | 1      | Hang up — often triggers a config reload             |
+| `SIGINT`    | 2      | Interrupt — same as pressing `Ctrl + C`              |
+| `SIGKILL`   | 9      | Immediate, forceful termination — cannot be caught or ignored |
+| `SIGTERM`   | 15     | Default — polite termination request, can be caught  |
+
+<Callout type="warn">
+Always try `kill` (SIGTERM) before `kill -9` (SIGKILL). SIGTERM allows a process to close files and clean up gracefully; SIGKILL terminates it instantly with no cleanup, which can cause data corruption.
+</Callout>
+
+**Worked example:**
+
+```bash
+$ ps aux | grep stress
+user      3391  99.0  0.1  10000  1200 pts/2   R+   11:00   2:15 stress --cpu 4
+$ kill 3391          # Polite request first
+$ ps aux | grep stress
+user      3391  99.0  0.1  10000  1200 pts/2   R+   11:00   2:15 stress --cpu 4
+$ kill -9 3391        # It ignored SIGTERM, so force it
+$ ps aux | grep stress
+$                     # Gone
+```
+
+If a process ignores `SIGTERM` (as some misbehaving or hung processes do), escalate to `kill -9` to force it to stop.
+
+---
+
+## 103.6 Modify Process Execution Priorities
+
+Linux uses a **niceness** value to determine how much CPU priority a process gets relative to others. The scale runs from **-20** (highest priority) to **19** (lowest priority), with **0** as the default.
+
+<Callout type="info">
+Confusingly, a **lower niceness number means higher priority** — a process that is "nice" to others (high niceness value) yields more CPU time to them.
+</Callout>
+
+### Starting a Process with a Custom Priority
+
+```bash
+nice -n 10 ./backup_script.sh      # Start with lower priority (be "nicer")
+nice -n -5 ./critical_task.sh      # Start with higher priority (needs privileges)
+```
+
+<Callout type="warn">
+Only the **root user** can set a **negative** niceness value (higher priority than default). Regular users can only lower their own process priority (positive values).
+</Callout>
+
+**Worked example:**
+
+```bash
+$ nice -n 10 ./backup_script.sh &
+[1] 4521
+$ ps -o pid,ni,cmd -p 4521
+  PID  NI CMD
+ 4521  10 ./backup_script.sh
+```
+
+The backup script now runs with niceness `10` instead of the default `0`, so it yields CPU time to other processes when the system is busy — useful for a background job you don't want competing with interactive work.
+
+### Changing Priority of a Running Process
+
+```bash
+renice 15 -p 1234        # Change PID 1234's niceness to 15 (lower priority)
+renice -5 -p 1234        # Raise priority of PID 1234 (root only)
+```
+
+**Checking niceness values:**
+
+```bash
+ps -o pid,ni,cmd -p 1234    # View the niceness (NI) column for a specific PID
+top                          # NI column shown live for all processes
+```
+
+**Worked example:**
+
+```bash
+$ ps -o pid,ni,cmd -p 4521
+  PID  NI CMD
+ 4521   0 ./backup_script.sh
+$ renice 15 -p 4521
+4521 (process ID) old priority 0, new priority 15
+$ ps -o pid,ni,cmd -p 4521
+  PID  NI CMD
+ 4521  15 ./backup_script.sh
+```
+
+The backup script's priority was lowered from `0` to `15` while it was already running, without needing to restart it.
+
+---
+
+### Summary Table
+
+| Command / Concept       | Purpose                                             |
+| -------------------------- | ------------------------------------------------------ |
+| `command &`                 | Run a command in the background                     |
+| `jobs`                       | List background/suspended jobs                       |
+| `fg %n` / `bg %n`            | Bring job to foreground / resume in background       |
+| `Ctrl + Z`                   | Suspend the current foreground process                |
+| `ps aux` / `ps -ef`          | Snapshot of running processes                          |
+| `top`                        | Real-time interactive process monitor                 |
+| `kill -9 <PID>`              | Force-kill a process by PID                            |
+| `killall <name>`             | Kill all processes matching a name                     |
+| `nice -n <value> command`    | Start a process with a set priority                    |
+| `renice <value> -p <PID>`    | Change priority of an already-running process          |
+
+---
+
+## Practice Questions
+
+<Accordions>
+  <Accordion title="What is the difference between stdout and stderr?">
+    `stdout` (file descriptor 1) carries normal program output, while
+    `stderr` (file descriptor 2) carries error messages. Both print to the
+    terminal by default but can be redirected independently.
+  </Accordion>
+  <Accordion title="How do you redirect both stdout and stderr to the same file?">
+    Use `command > file.txt 2>&1` (order matters), or the bash shortcut
+    `command &> file.txt`.
+  </Accordion>
+  <Accordion title="What is the difference between a pipe and a redirect?">
+    A pipe (`|`) connects the stdout of one process directly to the stdin of
+    another in memory. A redirect (`>`, `<`) sends data to or from a file on
+    disk.
+  </Accordion>
+  <Accordion title="How do you move a suspended job to the background?">
+    Suspend it with `Ctrl + Z`, then run `bg %n` (where `n` is the job
+    number) to resume it running in the background.
+  </Accordion>
+  <Accordion title="What is the difference between kill and kill -9?">
+    Plain `kill` sends `SIGTERM` (15), a polite request the process can
+    catch and clean up after. `kill -9` sends `SIGKILL`, which forcefully
+    terminates the process immediately with no chance to clean up.
+  </Accordion>
+  <Accordion title="What does niceness control, and what is the default value?">
+    Niceness controls CPU scheduling priority, ranging from -20 (highest
+    priority) to 19 (lowest priority). The default is 0. Lower values mean
+    higher priority.
+  </Accordion>
+  <Accordion title="Who can set a negative niceness value?">
+    Only the root user can assign a negative niceness value (raising a
+    process's priority above default). Regular users can only increase
+    niceness (lower priority) on their own processes.
+  </Accordion>
+</Accordions>
