@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { History } from "lucide-react";
 import { IconBlog } from "@/public/icons/blog";
 import { IconGit } from "@/public/icons/git";
 import { IconJs } from "@/public/icons/js";
@@ -29,6 +30,12 @@ const sections = [
     description: "Thoughts, tutorials, and things I'm building.",
     href: "/blog",
     icon: IconBlog,
+  },
+  {
+    title: "Changelog",
+    description: "New guides, improvements, and fixes shipped here.",
+    href: "/changelog",
+    icon: History,
   },
 ];
 
