@@ -1,3 +1,20 @@
+## Human-reviewed changelog publishing
+
+Merged `liara-docs` pull requests can now send their changelog-ready descriptions here automatically when they carry the `changelog` label.
+
+### Added
+
+- PR-template sections keep public release notes separate from internal implementation details.
+- Embedded PR images are downloaded and re-hosted with the changelog.
+- Every generated update opens a reviewable `docs-blogs` pull request—nothing auto-merges.
+
+### Improved
+
+- Empty entries, duplicate workflow runs, and unsafe MDX braces are handled before a changelog PR opens.
+- Changelog pull requests run a production build before human review and deployment.
+
+---
+
 ## A clearer place to follow updates
 
 This first changelog release adds a dedicated home for meaningful changes. It keeps updates short, scannable, and close to the documentation they affect.
