@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { withBasePath } from "@/lib/shared";
 
 export default function PresentationEmbed({
   src,
@@ -29,7 +30,7 @@ export default function PresentationEmbed({
       style={{ aspectRatio: isFullscreen ? undefined : "16/9" }}
     >
       <iframe
-        src={src}
+        src={withBasePath(src)}
         title={title}
         className="size-full border-0"
         allow="fullscreen"
