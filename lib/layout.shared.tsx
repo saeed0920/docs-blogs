@@ -6,6 +6,7 @@ import { IconGit } from "@/public/icons/git";
 import { IconBlog } from "@/public/icons/blog";
 import { NavTooltip } from "@/components/navbar-tooptip";
 import Link from "next/link";
+import { History } from "lucide-react";
 
 export function baseOptions(): BaseLayoutProps {
   return {
@@ -43,6 +44,14 @@ export function baseOptions(): BaseLayoutProps {
         type: "icon",
         secondary: false,
         icon: <IconBlog />,
+      },
+      {
+        text: "Changelog",
+        url: "/changelog",
+        active: "nested-url",
+        type: "icon",
+        secondary: false,
+        icon: <History />,
       },
     ],
   };

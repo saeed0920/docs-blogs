@@ -12,7 +12,7 @@ html > body[data-scroll-locked] {
 }
 
 :root:not(.dark) body {
-    background-image: url(/dots.png);
+    background-image: var(--dots-image);
     background-size: 9rem;
 }
 

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import Changelog from "@/content/changelog.mdx";
-import { gitConfig } from "@/lib/shared";
+import { gitConfig, withBasePath } from "@/lib/shared";
 
 export const metadata = {
   title: "Changelog",
@@ -38,7 +38,7 @@ export default function ChangelogPage() {
 
         <div className="relative overflow-hidden rounded-2xl border border-fd-border bg-fd-card p-3 shadow-2xl shadow-black/5">
           <Image
-            src="/images/changelog-hero.svg"
+            src={withBasePath("/images/changelog-hero.svg")}
             alt="Illustrated release timeline showing version 1.4.0 shipped"
             width={960}
             height={720}

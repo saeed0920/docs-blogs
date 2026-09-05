@@ -6,6 +6,7 @@ import { InlineTOC } from "fumadocs-ui/components/inline-toc";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { blog } from "@/lib/source";
 import DefaultIcon from "@/components/defaultIcon";
+import { withBasePath } from "@/lib/shared";
 
 
 export default async function Page(props: {
@@ -32,7 +33,7 @@ export default async function Page(props: {
         <div className="relative w-full h-64 md:h-80 mb-6 rounded-lg overflow-hidden ">
           {image ? 
           <Image
-            src={image}
+            src={withBasePath(image)}
             alt={page.data.title}
             fill
             sizes="(max-width: 1400px) 100vw, 1400px"

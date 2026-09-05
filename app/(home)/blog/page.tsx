@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { blog } from "@/lib/source";
 import DefaultIcon from "@/components/defaultIcon";
+import { withBasePath } from "@/lib/shared";
 
 export default function Home() {
   const posts = blog.getPages();
@@ -35,7 +36,7 @@ export default function Home() {
               <div className="relative w-full h-40 overflow-hidden bg-fd-secondary">
                 {image ?
                   <Image
-                    src={image}
+                    src={withBasePath(image)}
                     alt={post.data.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
