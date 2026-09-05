@@ -40,7 +40,7 @@ export default function PresentationEmbed({
         onClick={toggleFullscreen}
         aria-label={isFullscreen ? "Exit fullscreen" : "View fullscreen"}
         aria-pressed={isFullscreen}
-        className="absolute bottom-3 right-3 inline-flex size-10 items-center justify-center rounded-lg border border-fd-border bg-fd-card/90 text-fd-foreground opacity-0 backdrop-blur transition-opacity duration-150 hover:text-fd-primary focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fd-primary group-hover:opacity-100"
+        className="absolute right-3 top-3 inline-flex size-10 items-center justify-center rounded-lg border border-fd-border bg-fd-card/90 text-fd-foreground opacity-0 backdrop-blur transition-opacity duration-150 hover:text-fd-primary focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fd-primary group-hover:opacity-100"
       >
         {isFullscreen ? (
           <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
