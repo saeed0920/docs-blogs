@@ -1,0 +1,55 @@
+---
+title: AI Workflow — ارائه تیمی
+description: ارائه‌ای در مورد فلسفه و روش استفاده درست از ابزارهای AI در تیم
+date: 2026-08-27
+tags: [ai, presentation]
+dir: rtl
+author: Saeed0920
+---
+
+import PresentationEmbed from "@/components/presentation-embed";
+
+<PresentationEmbed
+  src="/blog/presentations/ai-workflow/index.html"
+  title="AI Workflow presentation"
+/>
+
+## این ارائه در مورد چیه؟
+
+این ارائه حاصل تجربه‌ی کار روی چند پروژه (از جمله پروژه randomProject) و هکاتون لیارا بود؛ جایی که استفاده نادرست از AI هزینه‌ی واقعی گذاشت و نشون داد فقط داشتن ابزار کافی نیست، روش استفاده مهم‌تره.
+
+## نکات اصلی
+
+- بررسی Agentها (Pi، opencode) و روش لاگین/کانفیگ روی ترمینال + دموی وضعیت‌سازی پروژه پازلی
+- تفاوت و فلسفه‌ی هرکدوم از: **Skill، Agent، Instruction، Spec، Extensions (agent-browser, web searching)، Permissions**
+- دموی هکاتون لیارا و اسپک‌های تیم
+- خط قرمزهای استفاده از AI و مایندست درست (تجربه‌ی احسان)
+- استفاده تیمی درست: کجا کمک می‌کنه، کجا بدهی فنی می‌سازه
+- توهم توانایی/دانایی هنگام کار با AI
+- مدل‌ها، مصرف توکن، و گزینه‌های عملی (API با شارژ در برابر پلن ساب که برای کدزنی سنگین سریع ته می‌کشه)
+- استراتژی پیشنهادی: کار رو خودتون بشکنید، AI رو روی زیرمجموعه‌ها بذارید، مسئولیت نهایی تصمیم با شماست نه AI
+
+## رودمپ پیشنهادی برای تیم
+
+1. **با یه تسک کوچیک شروع می‌کنیم** — یه کار واقعی، کم‌ریسک و قابل‌اندازه‌گیری انتخاب می‌کنیم.
+2. **خروجی رو بررسی می‌کنیم** — کد، تصمیم‌ها، تست‌ها و زمانی که گذاشتیم رو با روش قبلی مقایسه می‌کنیم.
+3. **چیزهایی که یاد گرفتیم رو ثبت می‌کنیم** — پرامپت‌ها، اشتباه‌ها و قواعد مفید رو به `Instruction` یا `Skill` تیم تبدیل می‌کنیم.
+4. **روی چند تسک مشابه تکرارش می‌کنیم** — اول مطمئن می‌شیم نتیجه فقط یه اتفاق نبوده و دوباره هم جواب می‌ده.
+5. **کم‌کم بزرگش می‌کنیم** — وقتی ارزشش ثابت شد، می‌ریم سراغ تسک‌های بزرگ‌تر؛ ولی تصمیم و review آخر هنوز با خودمونه.
+
+## منابع
+
+- [spec-kit](https://github.com/github/spec-kit)
+- [ai-sdk.dev](https://ai-sdk.dev/)
+- [Spec-Driven Development — IBM](https://www.ibm.com/think/topics/spec-driven-development)
+- [skills.sh](https://skills.sh/)
+- [وب‌سایت امین مصباحی](https://mesbahi.net/fa/)
+
+### ویدیوها
+
+- https://www.youtube.com/watch?v=v4F1gFy-hqg&t=8s
+- https://www.youtube.com/watch?v=17_HcR95YBc&t=1s
+- https://www.youtube.com/watch?v=bzYziksDslU&t=1s
+- https://www.youtube.com/watch?v=DkhhE97Swmo
+- https://www.youtube.com/watch?v=HTUh0OO6Kmo
+- https://www.youtube.com/watch?v=TPDRS38g-LU
