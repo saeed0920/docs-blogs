@@ -1,3 +1,5 @@
+import type { SVGProps } from "react";
+
 export function IconGit(props: SVGProps<SVGSVGElement>) {
   return (
     <svg

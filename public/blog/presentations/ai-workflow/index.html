@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta name="description" content="ارائه‌ای درباره AI، ایجنت‌ها و استفاده درست از آن‌ها در تیم‌های فنی" />
+		<title>AI، ایجنت‌ها و قضاوت انسانی</title>
+		<link rel="stylesheet" href="dist/reset.css" />
+		<link rel="stylesheet" href="dist/reveal.css" />
+		<link rel="stylesheet" href="presentation.css" />
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section class="opening" data-auto-animate data-transition="fade" aria-label="شروع ارائه">
+					<div class="eyebrow">یک اعتراف قبل از شروع</div>
+					<h1 data-id="opening-claim">این ارائه را کامل<br /><mark>با AI</mark> نوشتم.</h1>
+					<svg class="doodle doodle-arrow" viewBox="0 0 180 120" aria-hidden="true">
+						<path d="M12 94C66 114 127 76 145 21M119 39l27-18 9 31" />
+					</svg>
+					<aside class="notes">چند ثانیه سکوت. تماس چشمی کامل. اجازه بده واکنش شکل بگیرد؛ هنوز توضیح نده.</aside>
+				</section>
+
+				<section class="opening correction" data-auto-animate data-transition="none" aria-label="اصلاح ادعا">
+					<p class="old-claim" data-id="opening-claim">این ارائه را کامل با AI نوشتم.</p>
+					<h1><mark>نه!</mark> واقعاً خودم نوشتم :))</h1>
+					<p class="question-line fragment fade-up">ولی وقتی جمله اول را شنیدین، چه حسی داشتین؟</p>
+					<figure class="reaction-gif fragment zoom-in">
+						<img src="assets/igot-suffer.gif" alt="میم ما داریم اینجا زحمت می‌کشیم" />
+						<figcaption>ما داریم اینجا زحمت می‌کشیم!</figcaption>
+					</figure>
+					<aside class="notes">بعد از خنده، سؤال را جدی مطرح کن و دو یا سه پاسخ کوتاه بگیر.</aside>
+				</section>
+
+				<section class="question-slide" data-transition="fade" aria-label="سؤال اصلی درباره حس مخاطب">
+					<span class="chapter-no">۰۱ / حس ما</span>
+					<h2>چرا وقتی می‌شنویم چیزی با <mark>AI</mark> ساخته شده، حس‌مون عوض می‌شه؟</h2>
+					<div class="two-prompts">
+						<p class="fragment fade-up">این حس از کجا میاد؟</p>
+						<p class="fragment fade-up">چرا برامون مهمه؟</p>
+					</div>
+					<aside class="notes">جواب نده. چند نظر کوتاه بگیر و کلیدواژه‌ها را نگه دار تا در بخش ذهنیت دوباره به آن‌ها برگردی.</aside>
+				</section>
+
+				<section class="question-slide slop-slide" data-transition="fade" aria-label="چرا از AI slop خوشمان نمی‌آید">
+					<span class="chapter-no">۰۱ / حس ما</span>
+					<div class="slop-layout">
+						<div class="slop-copy">
+							<h2>چرا از <mark>اسلاپ‌ها</mark> خوشمون نمیاد؟</h2>
+							<p class="future-tease fragment fade-up"><span lang="en" dir="ltr">AI slop</span>؛ بعداً برمی‌گردیم سراغ <strong>توهم دانایی و توانایی</strong></p>
+						</div>
+						<figure class="slop-meme fragment fade-left">
+							<img src="assets/ai-slop.jpg" alt="میم باب‌اسفنجی که خروجی AI را پس از دیدن دور می‌اندازد" />
+						</figure>
+					</div>
+					<aside class="notes">بحث کوتاه باز کن: چرا برچسب AI slop واکنش منفی می‌سازد؟ جواب را نبند؛ کلیدواژه‌های جمع را نگه دار و بگو جلوتر در «توهم دانایی و توانایی» برمی‌گردیم.</aside>
+				</section>
+
+				<section class="roadmap" data-transition="fade" aria-label="نقشه ارائه">
+					<header>
+						<span class="eyebrow">رودمپ</span>
+						<h2>امروز قراره<br />از این مسیر بریم.</h2>
+					</header>
+					<ol>
+						<li class="fragment fade-up"><b>داستان</b><span>چی شد به این ارائه رسیدم؟</span></li>
+						<li class="fragment fade-up"><b>ابزار</b><span>ایجنت چیه و چطور تنظیمش کنیم؟</span></li>
+						<li class="fragment fade-up"><b>تجربه</b><span>هکاتون، دمو و خروجی</span></li>
+						<li class="fragment fade-up"><b>قضاوت</b><span>خط قرمزها، تیم و هزینه</span></li>
+					</ol>
+				</section>
+
+				<section class="digging-slide" data-transition="fade" aria-label="داستان بیل‌زدن در randomProject">
+					<span class="chapter-no">۰۲ / داستان randomProject</span>
+					<h2>چند ماه پیش در randomProject<br />من داشتم <mark>بیل می‌زدم!</mark></h2>
+					<div class="digging-memes">
+						<figure class="fragment fade-up">
+							<img src="assets/bill.jpg" alt="میم بیل‌زدن" />
+						</figure>
+						<div class="digging-why fragment fade-up">
+							<b>چرا بیل می‌زدم؟</b>
+							<img src="assets/signal-1.jpg" alt="میم انتخاب بین دیزاین سیستم و تغییر سریع دیزاین" />
+						</div>
+					</div>
+					<aside class="notes">اول میم بیل را نشان بده. بعد بپرس «چرا بیل می‌زدم؟» و با کلیک بعدی میم randomProject را نشان بده.</aside>
+				</section>
+
+				<section class="signal-result" data-auto-animate data-transition="fade" aria-label="نقطه صفر و هدف اولیه randomProject">
+					<div class="result-copy">
+						<span class="eyebrow">randomProject AI</span>
+						<h2>نقطه صفر و<br /><mark>هدف اولیه</mark></h2>
+					</div>
+					<figure class="screenshot-note">
+						<img src="assets/planning-signal-ai.png" alt="تصویر برنامه‌ریزی تسک randomProject با کمک AI" />
+					</figure>
+				</section>
+
+				<section class="next-chapter" data-transition="fade" aria-label="ورود به فصل ایجنت‌ها">
+					<span class="eyebrow">۰۳ / ایجنت‌ها</span>
+					<h2>بریم ببینیم<br /><mark>ایجنت چیه!</mark></h2>
+				</section>
+
+				<section class="agent-tools" data-transition="fade" aria-label="pi و OpenCode">
+					<span class="eyebrow">دو ایجنتی که امروز می‌بینیم</span>
+					<div class="agent-tool-pair" dir="ltr" lang="en">
+						<div class="fragment"><small>01</small><b>pi</b></div>
+						<div class="fragment"><small>02</small><b>OpenCode</b></div>
+					</div>
+				</section>
+
+				<section class="agent-notes" data-transition="fade" aria-label="نکته‌های انتخاب ایجنت">
+					<span class="eyebrow">چند نکته درباره ایجنت‌ها</span>
+					<div class="agent-note-list">
+						<p class="fragment"><b lang="en" dir="ltr">pi</b><span>یه حالت از صفر نوشتن داره.</span></p>
+						<p class="fragment"><b lang="en" dir="ltr">OpenCode</b><span>یه setup کامل داره.</span></p>
+						<p class="fragment"><b lang="en" dir="ltr">Cursor / Claude Code</b><span>خیلی باهاشون ارتباط نگرفتم.</span></p>
+					</div>
+				</section>
+
+				<section class="test-title" data-transition="zoom" aria-label="شروع تست زنده">
+					<span class="eyebrow">Live Demo</span>
+					<h2>بریم یه<br /><mark>تست بگیریم!</mark></h2>
+				</section>
+
+				<section class="agent-concepts" data-transition="fade" aria-label="Instruction Skill Loop و OpenSpec">
+					<span class="eyebrow">چهار چیزی که باید ببینیم</span>
+					<div class="concept-sequence">
+						<figure class="fragment">
+							<b>Instruction</b><img src="assets/instruction.png" alt="نمونه instruction برای AI" />
+						</figure>
+						<figure class="fragment">
+							<b>Skill</b><img src="assets/skill-ai.webp" alt="نمونه skill برای AI" />
+						</figure>
+						<figure class="fragment">
+							<b>Loop</b><img src="assets/loopai.png" alt="نمونه loop برای AI" />
+						</figure>
+						<figure class="fragment">
+							<b>OpenSpec</b><img src="assets/spec.jpg" alt="نمونه OpenSpec" />
+						</figure>
+					</div>
+				</section>
+
+				<section class="break-slide" data-background-color="#1a3300" data-transition="fade" aria-label="Breakpoint اول">
+					<h2><mark>Breakpoint 1</mark></h2>
+				</section>
+
+				<section class="chapter-cover liara-cover" data-transition="fade" aria-label="تجربه هکاتون لیارا">
+					<span class="eyebrow">۰۴ / تجربه</span>
+					<h2>هکاتون لیارا:<br />از <mark>Spec</mark> تا خروجی</h2>
+					<p>این بار مسیر ساخت رو می‌بینیم.</p>
+					<svg class="doodle loop-doodle" viewBox="0 0 220 150" aria-hidden="true"><path d="M20 72c31-63 152-55 172 5 15 46-64 66-117 39-34-18-18-67 27-80 41-12 91 17 88 54" /></svg>
+				</section>
+
+				<section class="spec-flow" data-auto-animate data-transition="fade" aria-label="مسیر هکاتون">
+					<span class="chapter-no">Spec → Output</span>
+					<h2>مسئله را قبل از کد<br /><mark>قابل تقسیم</mark> کردیم.</h2>
+					<div class="spec-track">
+						<div class="fragment"><b>۱</b><span>مسئله</span></div>
+						<div class="fragment"><b>۲</b><span>Spec اولیه</span></div>
+						<div class="fragment"><b>۳</b><span>تقسیم کار</span></div>
+						<div class="fragment"><b>۴</b><span>انسان + ایجنت</span></div>
+						<div class="fragment"><b>۵</b><span>خروجی</span></div>
+					</div>
+					<aside class="notes">دموی لیارا را اینجا اجرا کن. برای هر مرحله یک نمونه واقعی از هکاتون نشان بده؛ ادعای عددی بدون داده اضافه نکن.</aside>
+				</section>
+
+				<section class="handoff-slide" data-transition="fade" aria-label="تفاوت خروجی گروه‌ها">
+					<div>
+						<span class="eyebrow">یک Spec، چند مسیر</span>
+						<h2>تفاوت گروه‌ها فقط<br />در مدل نبود.</h2>
+					</div>
+					<blockquote>
+						<span>Context</span>
+						<span>تقسیم مسئله</span>
+						<span>Review انسانی</span>
+					</blockquote>
+					<div class="handoff-note">احسان اگه نکته‌ای داره…</div>
+					<aside class="notes">نکات واقعی گروه‌ها و تجربه احسان را شفاهی اضافه کن. این سه عامل framing هستند، نه رتبه‌بندی قطعی گروه‌ها.</aside>
+				</section>
+
+				<section class="break-slide" data-background-color="#1a3300" data-transition="fade" aria-label="Breakpoint دوم">
+					<span class="break-label">Breakpoint 02 · پنج دقیقه</span>
+					<h2>اگر ایجنت مرورگر، ترمینال و سرویس‌ها را کنترل کند، کجا باید از ما <mark>اجازه</mark> بگیرد؟</h2>
+					<p>یه مرز مشخص تعریف کنید؛ «همیشه» و «هیچ‌وقت» جواب کافی نیست.</p>
+					<div class="timer" dir="ltr">05:00</div>
+				</section>
+
+				<section class="redline-example" data-transition="fade" aria-label="تصمیم‌های AI در URL Shortener">
+					<div class="redline-copy">
+						<span class="eyebrow">AI کجا تصمیم می‌گیره؟</span>
+						<h2>فرض کن می‌خوایم یه<br /><mark>URL Shortener</mark> بسازیم.</h2>
+						<p>اگه فقط همین رو بگیم، AI چه تصمیم‌هایی رو به‌جای ما می‌گیره؟</p>
+						<div class="redline-list compact">
+							<span class="fragment">داده حساس</span>
+							<span class="fragment">تغییر غیرقابل‌بازگشت</span>
+							<span class="fragment">ادعای بدون منبع</span>
+							<span class="fragment">مسئولیت انسانی</span>
+						</div>
+					</div>
+					<div class="decision-cloud">
+						<span class="fragment">Timeout</span>
+						<span class="fragment">Expire شدن لینک</span>
+						<span class="fragment">Permission</span>
+						<span class="fragment danger-choice">تصمیم رندوم</span>
+					</div>
+					<aside class="notes">وقتی چارچوب و تصمیم مشخص ندیم، AI مجبور می‌شه جاهای خالی را خودش پر کند؛ مثل timeout، expiry و permission.</aside>
+				</section>
+
+				<section class="debt-slide debt-with-meme" data-auto-animate data-transition="fade" aria-label="AI و بدهی فنی">
+					<div>
+						<p class="equation"><span>سرعت</span><b>×</b><span>نبود کنترل</span><b>=</b><mark>بدهی سریع‌تر</mark></p>
+						<h2>AI کیفیت تیم را چند برابر می‌کند؛<br />یا سرعت تولید بدهی فنی را.</h2>
+					</div>
+					<figure class="better-ai-meme fragment fade-left"><img src="assets/better-ai.jpg" alt="میم درباره بهترشدن یا بدترشدن نتیجه با AI" /></figure>
+					<aside class="notes">تجربه احسان از شرکت اینجا قرار بگیرد.</aside>
+				</section>
+
+				<section class="knowledge-slide" data-auto-animate data-transition="fade" aria-label="توهم دانایی و سوگیری اتوماسیون">
+					<span class="eyebrow">توهم توانایی و دانایی</span>
+					<h2>خروجی شبیه کارِ یه آدم آگاهه؛<br />ولی این یعنی <mark>ما هم فهمیدیم؟</mark></h2>
+					<div class="knowledge-points">
+						<article class="fragment"><b>توهم فهم</b><p>ممکنه نفهمیم موفقیت از دانش ما اومده یا قدرت ابزار.</p></article>
+						<article class="fragment"><b>Dunning–Kruger</b><p>دانش کم، تشخیص نادانی خودمون رو سخت می‌کنه.</p></article>
+						<article class="fragment"><b>Automation Bias</b><p>معمولاً بیشتر از چیزی که باید به سیستم خودکار اعتماد می‌کنیم.</p></article>
+					</div>
+					<p class="contract-example fragment">مثال: AI یه قرارداد تجاری پیچیده می‌سازه؛ ولی شاید نتونیم خطاهای حقوقی پنهانش رو پیدا کنیم.</p>
+				</section>
+
+				<section class="coffee-break" data-transition="fade" aria-label="استراحت قهوه و سؤال">
+					<div class="coffee-collage" aria-hidden="true">
+						<img src="assets/coffee/10.jpeg" alt="" />
+						<img src="assets/coffee/11.jpeg" alt="" />
+						<img src="assets/coffee/18.jpeg" alt="" />
+					</div>
+					<div class="coffee-question">
+						<span class="break-label">Coffee + Questions · سی دقیقه</span>
+						<h2>فردا توی تیم خودتون، AI رو دقیقاً در <mark>کدوم مرحله</mark> امتحان می‌کنید؟</h2>
+						<p>یه کار واقعی و کوچیک انتخاب کنید.</p>
+						<div class="timer" dir="ltr">30:00</div>
+						<svg class="doodle coffee-steam" viewBox="0 0 150 110" aria-hidden="true">
+							<path d="M25 97c-9-22 21-24 9-48-8-16 5-29 16-39M70 99c-8-19 17-24 8-43-7-15 5-25 14-36M113 97c-6-15 14-21 8-36-5-12 4-20 11-27" />
+						</svg>
+					</div>
+				</section>
+
+				<section class="chapter-cover model-cover" data-transition="fade" aria-label="مدل‌های AI">
+					<span class="eyebrow">۰۶ / مدل‌ها</span>
+					<h2>مدل‌هایی که<br /><mark>روی میز داریم</mark></h2>
+					<div class="model-list" dir="ltr" lang="en">
+						<span class="fragment">gpt5.6.sol</span>
+						<span class="fragment">sunnet5</span>
+						<span class="fragment">opus5</span>
+						<span class="fragment">glm5.2</span>
+						<span class="fragment">qwen3.7max</span>
+					</div>
+				</section>
+
+				<section class="limits-slide token-meme-slide" data-transition="fade" aria-label="پلن اشتراکی و مصرف توکن">
+					<div class="limit-story">
+						<span class="eyebrow">تجربه همین هکاتون</span>
+						<h2>برای کدنویسی سنگین،<br />Subscription همیشه کافی نبود.</h2>
+						<div class="limit-hits" dir="ltr"><span class="fragment">LIMIT</span><span class="fragment">LIMIT</span><span class="fragment">LIMIT</span></div>
+					</div>
+					<figure class="our-token-meme fragment fade-left"><img src="assets/our-token.jpg" alt="میم درباره مصرف توکن" /></figure>
+				</section>
+
+				<section class="token-slide" data-auto-animate data-transition="fade" aria-label="توکن و مصرف">
+					<span class="chapter-no">Token Budget</span>
+					<h2>Context بیشتر، رایگان نیست.</h2>
+					<div class="token-balance">
+						<div class="fragment"><b>Context</b><span>اطلاعات بیشتر</span></div>
+						<div class="fragment"><b>Cost</b><span>مصرف بیشتر</span></div>
+						<div class="fragment"><b>Latency</b><span>زمان بیشتر</span></div>
+					</div>
+					<p class="token-note">Skill و context دقیق کمک می‌کنند اطلاعات درست را بدهیم؛ نه اینکه کل دنیا را وارد prompt کنیم.</p>
+				</section>
+
+				<section class="strategy-slide" data-transition="fade" aria-label="استراتژی استفاده از AI">
+					<span class="eyebrow">استراتژی پیشنهادی</span>
+					<h2>ساختار را <mark>خودت</mark> بشکن.</h2>
+					<div class="strategy-steps">
+						<p class="fragment"><b>۱</b> مسئله و زیرمسئله‌ها را خودت تعریف کن.</p>
+						<p class="fragment"><b>۲</b> برای هر بخش از AI کمک بگیر.</p>
+						<p class="fragment"><b>۳</b> هر تصمیم و خروجی را بفهم و review کن.</p>
+					</div>
+				</section>
+
+				<section class="ownership-slide" data-auto-animate data-transition="fade" aria-label="مالکیت تصمیم">
+					<p class="ownership-lead">AI برای ایده‌گرفتن عالی است، اما…</p>
+					<h2>کدنویسی می‌تواند با AI باشد؛<br /><mark>تصمیم پروژه</mark> با من است.</h2>
+					<div class="ownership-footer">
+						<span>مالکیت</span><i>+</i><span>درک ابزار</span><i>+</i><span>توان دیباگ</span>
+					</div>
+					<aside class="notes">دیدگاه شخصی درباره vibe coding را اینجا بگو: وقتی تصمیم‌ها را نمی‌فهمی، احساس مالکیت و توان نگهداری کم می‌شود.</aside>
+				</section>
+
+				<section class="anti-ai-cover brutal" data-background-color="#050505" data-transition="zoom" aria-label="شروع فصل ضد هایپ">
+					<span class="adult-badge">+18</span>
+					<p>خب، حالا که همه‌چیز را گفتیم…</p>
+					<h2><span>F*CK</span> AI!</h2>
+					<small>نه ابزار؛ Hype و استفاده بی‌فکر.</small>
+				</section>
+
+				<section class="learn-slide brutal" data-background-color="#050505" data-transition="none" aria-label="یادگیری درست با AI">
+					<span class="brutal-label">DON'T OUTSOURCE LEARNING</span>
+					<h2>یادگیری را<br />به AI واگذار نکن.</h2>
+					<ul>
+						<li class="fragment">کدی را که نمی‌فهمی تحویل نده.</li>
+						<li class="fragment">تصمیم‌ها را خودت توضیح بده.</li>
+						<li class="fragment">بدون AI هم بتوانی debug کنی.</li>
+						<li class="fragment">هر خروجی را تست کن.</li>
+					</ul>
+				</section>
+
+				<section class="hype-slide brutal" data-background-color="#050505" data-auto-animate data-transition="none" aria-label="درگیر هایپ نشدن">
+					<div class="hype-copy">
+						<span class="brutal-label">HYPE ≠ PROGRESS</span>
+						<h2>درگیر <span>Hype</span> نشو.</h2>
+						<p>ابزارها عوض می‌شوند؛ درک مسئله، قضاوت و توان دیباگ می‌ماند.</p>
+						<div class="tool-direction fragment"><b>AI</b><i>←</i><strong>برای تو کار می‌کند</strong></div>
+					</div>
+					<figure class="slavery-meme fragment fade-left">
+						<img src="assets/slavery.jpg" alt="میم Today Subject: Slavery" />
+					</figure>
+					<aside class="notes">اول جمله «AI برای تو کار می‌کند» را نشان بده؛ بعد میم را reveal کن.</aside>
+				</section>
+
+				<section class="backup-plan brutal" data-background-color="#050505" data-transition="convex" aria-label="شوخی پلن جایگزین">
+					<div class="backup-copy">
+						<span class="brutal-label">PLAN B</span>
+						<h2>این‌طوری جایگزین نمی‌شیم :))</h2>
+						<p class="fragment">شدیم هم مهم نیست؛<br /><b>پلن جایگزینم آماده‌ست.</b></p>
+					</div>
+					<video class="coffee-video" controls preload="metadata" poster="assets/last-result-coffee.jpg">
+						<source src="assets/coffee-latte.mp4" type="video/mp4" />
+					</video>
+				</section>
+
+				<section class="closing-slide" data-transition="fade" aria-label="پایان ارائه">
+					<span class="eyebrow">یک قدم بعدی</span>
+					<h2>هدف کمتر فکرکردن نیست؛<br />هدف، فکرکردن به <mark>مسئله درست</mark> است.</h2>
+					<p>این هفته یک کار کوچک، واقعی و قابل‌اندازه‌گیری را با ایجنت امتحان کنید.</p>
+					<svg class="doodle closing-line" viewBox="0 0 280 80" aria-hidden="true"><path d="M8 49c54-29 114-36 170-9 27 13 55 17 92 2" /></svg>
+				</section>
+
+				<section class="resources-slide" data-transition="fade" aria-label="قدم بعدی برای ابزارها">
+					<header><span class="eyebrow">قدم بعدی</span><h2>ابزارها رو بخونیم و<br /><mark>برای خودمون</mark> تنظیم کنیم.</h2></header>
+					<div class="resource-list" dir="ltr" lang="en">
+						<div><b>pi</b><span>customize for your workflow</span></div>
+						<div><b>OpenCode</b><span>customize for your team</span></div>
+						<div><b>Skills & Rules</b><span>shape them around real usage</span></div>
+					</div>
+					<p class="resource-note">ابزار آماده قرار نیست دقیقاً مناسب تیم ما باشه؛ باید طبق استفاده خودمون کاستومش کنیم.</p>
+				</section>
+
+				<section class="resource-hub" data-transition="fade" aria-label="منابع و فهرست مطالعه">
+					<header>
+						<div><span class="eyebrow">بعد از ارائه</span><h2>منابع و <mark>لیست مطالعه</mark></h2></div>
+						<span class="resource-progress" aria-live="polite"><span dir="ltr"><b id="resource-done">۰</b> / 18</span> دیده شده</span>
+					</header>
+					<div class="resource-hub-grid">
+						<div class="youtube-preview">
+							<iframe id="youtube-preview" src="https://www.youtube-nocookie.com/embed/v4F1gFy-hqg?start=8" title="پیش‌نمایش ویدئوی یوتیوب" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							<div class="video-picker" dir="ltr" aria-label="انتخاب پیش‌نمایش ویدئو">
+								<button class="active" type="button" data-video="v4F1gFy-hqg" data-start="8">01</button>
+								<button type="button" data-video="17_HcR95YBc" data-start="1">02</button>
+								<button type="button" data-video="bzYziksDslU" data-start="1">03</button>
+								<button type="button" data-video="DkhhE97Swmo">04</button>
+								<button type="button" data-video="HTUh0OO6Kmo">05</button>
+								<button type="button" data-video="TPDRS38g-LU">06</button>
+							</div>
+							<p>شماره ویدئو رو بزن تا همین‌جا preview بشه.</p>
+						</div>
+						<div class="resource-checklist" dir="ltr" lang="en">
+							<fieldset>
+								<legend>Watch</legend>
+								<div><input type="checkbox" data-resource="yt-1" aria-label="Mark YouTube 01 done" /><a href="https://www.youtube.com/watch?v=v4F1gFy-hqg&t=8s" target="_blank" rel="noopener">YouTube 01</a></div>
+								<div><input type="checkbox" data-resource="yt-2" aria-label="Mark YouTube 02 done" /><a href="https://www.youtube.com/watch?v=17_HcR95YBc&t=1s" target="_blank" rel="noopener">YouTube 02</a></div>
+								<div><input type="checkbox" data-resource="yt-3" aria-label="Mark YouTube 03 done" /><a href="https://www.youtube.com/watch?v=bzYziksDslU&t=1s" target="_blank" rel="noopener">YouTube 03</a></div>
+								<div><input type="checkbox" data-resource="yt-4" aria-label="Mark YouTube 04 done" /><a href="https://www.youtube.com/watch?v=DkhhE97Swmo" target="_blank" rel="noopener">YouTube 04</a></div>
+								<div><input type="checkbox" data-resource="yt-5" aria-label="Mark YouTube 05 done" /><a href="https://www.youtube.com/watch?v=HTUh0OO6Kmo" target="_blank" rel="noopener">YouTube 05</a></div>
+								<div><input type="checkbox" data-resource="yt-6" aria-label="Mark YouTube 06 done" /><a href="https://www.youtube.com/watch?v=TPDRS38g-LU" target="_blank" rel="noopener">YouTube 06</a></div>
+							</fieldset>
+							<fieldset>
+								<legend>Build</legend>
+								<div><input type="checkbox" data-resource="spec-kit" aria-label="Mark Spec Kit done" /><a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">Spec Kit</a></div>
+								<div><input type="checkbox" data-resource="ai-sdk" aria-label="Mark AI SDK done" /><a href="https://ai-sdk.dev/" target="_blank" rel="noopener">AI SDK</a></div>
+								<div><input type="checkbox" data-resource="ibm-sdd" aria-label="Mark IBM SDD done" /><a href="https://www.ibm.com/think/topics/spec-driven-development" target="_blank" rel="noopener">IBM: SDD</a></div>
+								<div><input type="checkbox" data-resource="skills" aria-label="Mark skills.sh done" /><a href="https://skills.sh/" target="_blank" rel="noopener">skills.sh</a></div>
+								<div><input type="checkbox" data-resource="code-review" aria-label="Mark Open Code Review done" /><a href="https://github.com/alibaba/open-code-review" target="_blank" rel="noopener">Open Code Review</a></div>
+								<div><input type="checkbox" data-resource="mesbahi" aria-label="Mark Mesbahi SDD done" /><a href="https://mesbahi.net/fa/blog/1405/05/31/spec-driven-development/" target="_blank" rel="noopener">Mesbahi: SDD</a></div>
+								<div><input type="checkbox" data-resource="mesbahi-site" aria-label="Mark Mesbahi website done" /><a href="https://mesbahi.net/fa/" target="_blank" rel="noopener">Mesbahi.net</a></div>
+								<div><input type="checkbox" data-resource="agents-md" aria-label="Mark AGENTS.md done" /><a href="https://agents.md/" target="_blank" rel="noopener">AGENTS.md</a></div>
+								<div><input type="checkbox" data-resource="openspec" aria-label="Mark OpenSpec done" /><a href="https://github.com/Fission-AI/openspec" target="_blank" rel="noopener">OpenSpec</a></div>
+							</fieldset>
+							<fieldset>
+								<legend>Think</legend>
+								<div><input type="checkbox" data-resource="pubmed" aria-label="Mark PubMed study done" /><a href="https://pubmed.ncbi.nlm.nih.gov/21442007/" target="_blank" rel="noopener">PubMed 21442007</a></div>
+								<div><input type="checkbox" data-resource="pmc" aria-label="Mark PMC study done" /><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12333830/" target="_blank" rel="noopener">PMC 12333830</a></div>
+								<div><input type="checkbox" data-resource="reddit" aria-label="Mark Reddit discussion done" /><a href="https://www.reddit.com/r/ArtificialInteligence/comments/1g35n16/what_is_the_point_of_studying_if_ai_can_do/" target="_blank" rel="noopener">Reddit discussion</a></div>
+							</fieldset>
+						</div>
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<div class="navigation-hint" role="note" aria-label="راهنمای کنترل ارائه">
+			<span>ادامه ارائه</span>
+			<kbd>←</kbd><kbd>→</kbd><span>یا</span><kbd>Space</kbd>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="dist/plugin/notes.js"></script>
+		<script>
+			Reveal.initialize({
+				hash: true,
+				width: 1280,
+				height: 720,
+				margin: 0.04,
+				transition: 'fade',
+				transitionSpeed: 'fast',
+				backgroundTransition: 'fade',
+				controls: true,
+				progress: true,
+				slideNumber: 'c/t',
+				plugins: [RevealNotes]
+			});
+
+			const resourceStorageKey = 'ai-agent-presentation-resources-v1';
+			const resourceChecks = [...document.querySelectorAll('[data-resource]')];
+			const resourceDone = document.querySelector('#resource-done');
+
+			try {
+				const savedResources = new Set(JSON.parse(localStorage.getItem(resourceStorageKey) || '[]'));
+				resourceChecks.forEach(input => (input.checked = savedResources.has(input.dataset.resource)));
+			} catch {
+				localStorage.removeItem(resourceStorageKey);
+			}
+
+			function saveResourceChecklist() {
+				const completed = resourceChecks.filter(input => input.checked).map(input => input.dataset.resource);
+				localStorage.setItem(resourceStorageKey, JSON.stringify(completed));
+				resourceDone.textContent = completed.length.toLocaleString('fa-IR');
+			}
+
+			resourceChecks.forEach(input => input.addEventListener('change', saveResourceChecklist));
+			saveResourceChecklist();
+
+			const youtubePreview = document.querySelector('#youtube-preview');
+			document.querySelectorAll('[data-video]').forEach(button => {
+				button.addEventListener('click', () => {
+					document.querySelectorAll('[data-video]').forEach(item => item.classList.remove('active'));
+					button.classList.add('active');
+					const start = button.dataset.start ? `?start=${button.dataset.start}` : '';
+					youtubePreview.src = `https://www.youtube-nocookie.com/embed/${button.dataset.video}${start}`;
+				});
+			});
+		</script>
+	</body>
+</html>
