@@ -1,0 +1,196 @@
+---
+title: Functions
+description: Declarations, expressions, arrow functions, parameters, return, and a first look at scope and callbacks.
+---
+
+# Functions
+
+**Goal:** name a piece of behavior, give it inputs, get an output.
+
+**Read:** [javascript.info — Functions](https://javascript.info/function-basics) · [Arrow functions](https://javascript.info/arrow-functions-basics) · YDKJS *Scope & Closures* ch. 3–5 · Udemy §3–4
+
+---
+
+## 1. Three ways to write one
+
+```js
+// Declaration — hoisted, usable before its line
+function add(a, b) {
+  return a + b;
+}
+
+// Expression — not hoisted
+const add2 = function (a, b) {
+  return a + b;
+};
+
+// Arrow — shortest, no own `this`
+const add3 = (a, b) => a + b;
+```
+
+Arrow shorthand:
+
+```js
+const double = n => n * 2;            // one param, no parens needed
+const noop = () => {};                // no params
+const make = () => ({ ok: true });    // returning an object needs parens
+```
+
+<Callout type="info">
+Default choice: **arrow** for small helpers and callbacks, **declaration** for top-level named functions you want hoisted and readable in stack traces. Don't overthink it.
+</Callout>
+
+## 2. Return
+
+```js
+function f() {
+  return;      // undefined
+}
+function g() {} // also undefined
+```
+
+A function with no `return` returns `undefined`. Half of all "why is it undefined?" bugs are a missing `return`.
+
+<Callout type="warn">
+Never put a newline after `return` — automatic semicolon insertion turns it into `return;` and your object disappears.
+
+```js
+return
+  { ok: true };   // ❌ returns undefined
+```
+</Callout>
+
+## 3. Parameters
+
+```js
+function greet(name = "guest", greeting = "Hello") {
+  return `${greeting}, ${name}`;
+}
+greet();                // "Hello, guest"
+greet("Ali");           // "Hello, Ali"
+greet(undefined, "Hi"); // "Hi, guest"  — defaults trigger on undefined only
+```
+
+Rest — collect the remainder into an array:
+
+```js
+function sum(...nums) {
+  return nums.reduce((t, n) => t + n, 0);
+}
+sum(1, 2, 3); // 6
+```
+
+Spread — the opposite, at the call site:
+
+```js
+const nums = [1, 2, 3];
+sum(...nums); // 6
+Math.max(...nums); // 3
+```
+
+More than 3 parameters → pass an object instead:
+
+```js
+createUser({ name: "Ali", age: 20, isAdmin: false });
+```
+
+Nobody remembers positional argument #4.
+
+## 4. Pass by value / by reference — again
+
+```js
+function bump(n) { n++; }
+let x = 1;
+bump(x);
+console.log(x); // 1 — primitive was copied
+
+function rename(user) { user.name = "changed"; }
+const u = { name: "Ali" };
+rename(u);
+console.log(u.name); // "changed" — object reference was copied
+```
+
+A function that changes its argument is a **mutation**. Prefer returning a new value:
+
+```js
+const renamed = { ...u, name: "changed" }; // original untouched
+```
+
+## 5. Functions are values
+
+They can be passed around — this is what makes `map`/`filter` work in the next lesson.
+
+```js
+const nums = [1, 2, 3];
+nums.map(n => n * 2);   // the arrow is a callback
+
+function repeat(times, fn) {
+  for (let i = 0; i < times; i++) fn(i);
+}
+repeat(3, i => console.log(i));
+```
+
+## 6. Closure (first taste)
+
+An inner function remembers the variables where it was **defined**, not where it is called.
+
+```js
+function counter() {
+  let count = 0;
+  return () => ++count;
+}
+const next = counter();
+next(); // 1
+next(); // 2 — count survived, and nobody outside can touch it
+```
+
+Full treatment in Phase 2. For now: closures are how you keep private state without a class.
+
+---
+
+## Traps recap
+
+| Trap | Reality |
+| --- | --- |
+| Missing `return` | Function returns `undefined` |
+| Newline after `return` | ASI inserts a semicolon → `undefined` |
+| `() => { ok: true }` | Returns `undefined` — `{}` is a block. Wrap: `() => ({ ok: true })` |
+| Arrow function `this` | Arrows have no own `this`. Not a method replacement (see [Objects](/front/js/07-objects)) |
+| Mutating an argument object | The caller's object changes too |
+
+---
+
+## Lab
+
+```js
+// 1. Rewrite these loops as functions with a return value
+function sumTo(n) { }        // 1+2+...+n
+function reverse(str) { }
+function countVowels(str) { }
+
+assert(sumTo(5) === 15, "sumTo");
+assert(reverse("abc") === "cba", "reverse");
+assert(countVowels("javascript") === 3, "vowels");
+
+// 2. Pure vs impure — make this pure (no mutation, return a new array)
+function addItem(list, item) {
+  list.push(item);   // fix
+  return list;
+}
+const original = [1];
+const result = addItem(original, 2);
+assert(original.length === 1, "original untouched");
+assert(result.length === 2, "new list returned");
+
+// 3. Higher-order: write `times(n, fn)` that calls fn with 0..n-1
+let acc = 0;
+times(4, i => acc += i);
+assert(acc === 6, "times");
+```
+
+## Homework
+
+- javascript.info tasks in *Function basics* and *Function expressions*.
+- Take your longest file from Phase 0 and pull out at least two functions. The file should get shorter.
+
+**Due: ____**

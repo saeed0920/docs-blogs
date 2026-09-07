@@ -1,0 +1,169 @@
+---
+title: Operators
+description: Arithmetic, assignment, comparison, logical operators, and why == is banned.
+---
+
+# Operators
+
+**Goal:** compare and combine values without surprises.
+
+**Read:** [javascript.info — Operators](https://javascript.info/operators) · [Comparisons](https://javascript.info/comparison) · [Logical operators](https://javascript.info/logical-operators) · Udemy §2
+
+---
+
+## 1. Arithmetic
+
+```js
+5 + 2   // 7
+5 - 2   // 3
+5 * 2   // 10
+5 / 2   // 2.5   ← always float division
+5 % 2   // 1     ← remainder: the workhorse of algorithm problems
+5 ** 2  // 25    ← power
+```
+
+`%` uses:
+
+```js
+n % 2 === 0        // even?
+i % arr.length     // wrap around an array
+n % 15 === 0       // FizzBuzz
+```
+
+Integer division: `Math.floor(5 / 2)` → `2`. There is no `//`.
+
+## 2. Assignment
+
+```js
+let x = 5;
+x += 3;  // 8
+x -= 1;  // 7
+x *= 2;  // 14
+x /= 7;  // 2
+x++;     // 3, but returns 2 (post-increment)
+++x;     // 4, returns 4 (pre-increment)
+```
+
+Use `x++` alone on its own line and the difference never bites you.
+
+## 3. Comparison — `==` is banned
+
+```js
+5 === 5      // true
+5 === "5"    // false ← different types
+5 == "5"     // true  ← converts, then compares
+```
+
+`==` converts types before comparing. Its rules are a table nobody remembers:
+
+```js
+0 == ""          // true
+0 == "0"         // true
+"" == "0"        // false   ← not transitive!
+null == undefined// true
+null == 0        // false
+NaN == NaN       // false
+[] == false      // true
+```
+
+<Callout type="warn">
+**Rule: always `===` and `!==`.** The one accepted exception is `x == null`, which checks `null` *or* `undefined` in one shot. Everything else uses `===`.
+</Callout>
+
+Comparing objects compares references, never contents:
+
+```js
+{ a: 1 } === { a: 1 }  // false — two different objects
+const o = { a: 1 };
+o === o                 // true
+```
+
+Compare contents with `JSON.stringify(a) === JSON.stringify(b)` for simple data — key order matters, so it is a hack, not a solution. Real deep-equal comes in Phase 2.
+
+## 4. Logical operators
+
+```js
+a && b   // AND — returns a if a is falsy, else b
+a || b   // OR  — returns a if a is truthy, else b
+!a       // NOT — always a boolean
+```
+
+They **return a value, not a boolean**. That is the useful part:
+
+```js
+const name = input || "Anonymous";   // fallback when input is falsy
+isLoggedIn && render();              // run only if true
+```
+
+Short-circuit: `&&` stops at the first falsy, `||` stops at the first truthy. The right side may never run.
+
+### `??` — nullish coalescing
+
+```js
+const count = 0;
+count || 10   // 10  ❌ wrong — 0 is falsy but valid
+count ?? 10   // 0   ✅ only null/undefined trigger the fallback
+```
+
+Use `??` for defaults. Use `||` only when *all* falsy values should be replaced.
+
+### `?.` — optional chaining
+
+```js
+user.address.city    // TypeError if address is undefined
+user.address?.city   // undefined, no crash
+user.getName?.()     // call only if it exists
+```
+
+Don't sprinkle it everywhere — `a?.b?.c?.d` usually means your data shape is unclear.
+
+## 5. Ternary
+
+```js
+const label = age >= 18 ? "adult" : "minor";
+```
+
+One level only. Nested ternaries are the code someone decodes at 3am — use `if`.
+
+---
+
+## Traps recap
+
+| Expression | Result | Why |
+| --- | --- | --- |
+| `"" == "0"` | `false` | `==` is not transitive |
+| `0 \|\| "def"` | `"def"` | `0` is falsy — use `??` |
+| `null > 0` | `false` | but `null >= 0` is `true` |
+| `[1] == 1` | `true` | array → `"1"` → `1` |
+| `"10" > "9"` | `false` | strings compare letter by letter |
+
+---
+
+## Lab
+
+```js
+// 1. Build the truth table. Predict each, then run.
+const values = [0, "", "0", [], {}, null, undefined, NaN];
+for (const v of values) {
+  console.log(JSON.stringify(v), Boolean(v), v == false);
+}
+
+// 2. Write it
+function isEven(n) { /* use % */ }
+assert(isEven(4) && !isEven(7), "isEven");
+
+function clamp(n, min, max) { /* keep n between min and max */ }
+assert(clamp(15, 0, 10) === 10, "clamp high");
+assert(clamp(-5, 0, 10) === 0, "clamp low");
+
+// 3. Fix the bug: a user with 0 points shows "no data"
+const points = 0;
+const display = points || "no data"; // wrong — fix it
+```
+
+## Homework
+
+- javascript.info tasks in *Comparisons* and *Logical operators*.
+- Write one sentence explaining when `??` differs from `||`. If you can't, reread section 4.
+
+**Due: ____**

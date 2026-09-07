@@ -1,0 +1,156 @@
+---
+title: AI Coding Agents
+description: What an AI coding agent is, how pi and opencode work, using a shared API key safely, and the rules for using AI while learning JS.
+---
+
+# Phase 0.5 — AI Coding Agents
+
+**Goal:** run a coding agent in your own terminal, understand what it actually does, and know the rule for using it while you are still learning.
+
+**Read:** [pi](https://github.com/earendil-works/pi) · [opencode](https://github.com/sst/opencode) · your provider's docs
+
+---
+
+## 1. What an agent is
+
+A chatbot returns text. An **agent** runs in a loop with tools:
+
+```
+you: "fix the failing test"
+  → model reads files (read tool)
+  → model runs the test (bash tool)
+  → model edits a file (edit tool)
+  → model runs the test again
+  → done
+```
+
+Three parts, nothing more:
+
+| Part | What it is |
+| --- | --- |
+| **Model** | The LLM. Lives on a server. Costs money per token. |
+| **Harness** | The program on your laptop (`pi`, `opencode`). Gives the model tools and runs them. |
+| **API key** | Your ticket to the model. A secret string. |
+
+The model cannot touch your disk. The **harness** touches your disk, when the model asks it to. That is why the harness asks you for permission — and why you read what it is about to run.
+
+## 2. Install
+
+```bash
+# pi
+npm install -g @earendil-works/pi-coding-agent
+pi --version
+
+# opencode
+npm install -g opencode-ai
+opencode --version
+```
+
+Both are Node programs — you already installed Node in [Session 0](/front/js/00-what-is-js).
+
+## 3. The API key
+
+I will hand out a key in class. Treat it as a password.
+
+```bash
+# put it in your shell config, not in your project
+echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
+source ~/.bashrc
+```
+
+<Callout type="warn">
+**Never put a key in a file inside a git repo.** A key pushed to GitHub is scraped by bots within minutes and spent on someone else's bill. If it ever lands in a commit, the key is burned — rotate it, do not just delete the line.
+
+Rules:
+- Key lives in an env var or a `.env` file that is in `.gitignore`.
+- Never paste a key into a chat, an issue, or a screenshot.
+- The class key is shared and rate-limited. Burn it and everyone waits.
+</Callout>
+
+Check it is loaded, without printing it:
+
+```bash
+[ -n "$OPENAI_API_KEY" ] && echo "key is set"
+```
+
+## 4. First run
+
+```bash
+mkdir -p ~/js-practice/agent-demo && cd ~/js-practice/agent-demo
+pi          # or: opencode
+```
+
+Try, in order:
+
+1. `explain what files are in this folder` — read-only, zero risk.
+2. `create fizzbuzz.js with a fizzbuzz function and an assert self-check` — it writes a file. Open it and check.
+3. `run it with node` — it uses the bash tool. **Read the command before approving.**
+4. `it prints 15 wrong, fix it` — it reads its own output, edits, re-runs.
+
+Watch the loop: read → act → check → repeat. That is the whole idea.
+
+## 5. Where JS meets the agent
+
+The `fizzbuzz.js` it writes is the same code you wrote in [Conditions & Loops](/front/js/04-conditions-loops). That is the point of doing this session *after* Phase 0: you can already tell whether the output is correct.
+
+Ask it a question you know the answer to:
+
+```
+why does [10, 9, 1].sort() give [1, 10, 9]?
+```
+
+You know the answer from [Arrays](/front/js/06-arrays) — string comparison. If the agent gives a different reason, **the agent is wrong**. This happens. Models are confident when they are wrong; that is their most dangerous property.
+
+## 6. Cost and context
+
+- You pay per **token** — roughly per word, input *and* output.
+- The model has a **context window**: everything it can see at once. Long sessions fill it and the model starts forgetting the top of the conversation.
+- Practical: one task per session. `/new` or restart between unrelated tasks. Short, specific prompts beat long ones.
+
+## 7. The rule for this course
+
+<Callout type="warn">
+**The AI writes the line. You explain the line.**
+
+If you cannot explain what a line does, delete it. Code you cannot explain is code you cannot debug, and it will be on your screen at 3am.
+</Callout>
+
+Allowed while learning:
+
+| ✅ Use it for | ❌ Not for |
+| --- | --- |
+| Explaining an error message | Writing your lab from scratch |
+| "Why is this `undefined`?" | Homework you haven't attempted |
+| Reviewing code you already wrote | Anything you can't read back |
+| Boring boilerplate (HTML skeleton) | Concepts you are being graded on |
+
+An agent makes a good developer faster. It makes a beginner *feel* faster while learning nothing. You will be asked to explain your code out loud.
+
+---
+
+## Traps recap
+
+| Trap | Reality |
+| --- | --- |
+| Key committed to git | Scraped in minutes. Rotate, don't just delete |
+| Approving bash commands blindly | The agent runs them as **you**. Read first |
+| Confident wrong answer | Models never say "I don't know." Verify |
+| Very long session | Context fills up, quality drops. Start fresh |
+| "It doesn't work" prompt | No information → useless answer. Paste the error |
+
+---
+
+## Lab
+
+1. Install `pi` or `opencode`, set the key from an env var, confirm it is set **without printing it**.
+2. Ask it to build `fizzbuzz.js` with asserts. Read every line. Write a one-line comment above each one, in your own words.
+3. Break it on purpose (change `% 3` to `% 2`). Ask the agent to fix it. Watch which tools it uses.
+4. Ask a question you already know from Phase 0. Grade the answer: right, wrong, or half-right. Write down which.
+5. Ask it to explain `[10, 9, 1].sort()`. Compare to [Arrays](/front/js/06-arrays).
+
+## Homework
+
+- Write half a page: *what part of my last exercise should I have written myself?*
+- Add `.env` to a `.gitignore` in your practice folder. Run `git status` and confirm the key file does not appear.
+
+**Due: ____**

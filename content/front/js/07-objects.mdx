@@ -1,0 +1,223 @@
+---
+title: Objects & Methods
+description: Properties, methods, this, destructuring, Object.keys/values/entries, and objects vs Map.
+---
+
+# Objects & Methods
+
+**Goal:** model a real thing — data plus the behavior that belongs to it.
+
+**Read:** [javascript.info — Objects](https://javascript.info/object) · [Object methods, this](https://javascript.info/object-methods) · YDKJS *this & Object Prototypes* ch. 1–2 · Udemy §8
+
+---
+
+## 1. Basics
+
+```js
+const student = {
+  name: "Ali",
+  age: 20,
+  scores: [88, 95],
+  isActive: true,
+};
+
+student.name;        // dot — when you know the key
+student["name"];     // brackets — when the key is in a variable
+const key = "age";
+student[key];        // 20
+
+student.email = "a@b.com";   // add
+delete student.isActive;     // remove
+"name" in student;           // true — key exists?
+student.phone;               // undefined — missing key, no error
+```
+
+## 2. Methods and `this`
+
+A function stored on an object is a **method**. `this` is the object it was called on.
+
+```js
+const student = {
+  name: "Ali",
+  scores: [88, 95],
+
+  average() {                       // shorthand method syntax
+    return this.scores.reduce((a, b) => a + b, 0) / this.scores.length;
+  },
+
+  greet() {
+    return `Hi, ${this.name}`;
+  },
+};
+
+student.average(); // 91.5
+```
+
+<Callout type="warn">
+**`this` is decided by the call, not the definition.**
+
+```js
+const greet = student.greet;
+greet(); // "Hi, undefined" — no object on the left of the dot
+```
+
+Fix: `student.greet()`, or `greet.bind(student)`.
+</Callout>
+
+**Never use an arrow function as a method:**
+
+```js
+const bad = {
+  name: "Ali",
+  greet: () => `Hi, ${this.name}`,  // ❌ arrow has no own `this`
+};
+bad.greet(); // "Hi, undefined"
+```
+
+Arrows are correct *inside* a method, where you want to keep the outer `this`:
+
+```js
+const list = {
+  items: ["a", "b"],
+  prefix: ">",
+  render() {
+    return this.items.map(i => this.prefix + i); // ✅ arrow keeps `this`
+  },
+};
+```
+
+## 3. Iterating
+
+```js
+const obj = { a: 1, b: 2 };
+
+Object.keys(obj);    // ["a", "b"]
+Object.values(obj);  // [1, 2]
+Object.entries(obj); // [["a",1], ["b",2]]
+
+for (const [key, value] of Object.entries(obj)) {
+  console.log(key, value);
+}
+```
+
+`Object.entries` + array methods is how you `map`/`filter` an object:
+
+```js
+const doubled = Object.fromEntries(
+  Object.entries(obj).map(([k, v]) => [k, v * 2])
+); // { a: 2, b: 4 }
+```
+
+## 4. Destructuring
+
+```js
+const { name, age } = student;
+const { name: userName } = student;        // rename
+const { phone = "none" } = student;        // default for a missing key
+const { scores: [first] } = student;       // nested
+
+function show({ name, age }) {             // destructure a parameter
+  return `${name} (${age})`;
+}
+```
+
+## 5. Copying and merging
+
+```js
+const copy = { ...student };                    // shallow
+const updated = { ...student, age: 21 };        // change one field, keep the rest
+const merged = { ...defaults, ...userOptions }; // later wins
+const deep = structuredClone(student);          // real deep copy
+```
+
+Shallow copy shares nested objects — `copy.scores` is the **same array** as `student.scores`.
+
+## 6. Nested access
+
+```js
+user?.address?.city ?? "unknown";
+```
+
+Optional chaining plus a nullish default: the whole pattern for uncertain data.
+
+## 7. Object vs Map
+
+| Use | When |
+| --- | --- |
+| Object `{}` | Fixed, known keys. Records, config, JSON data |
+| `Map` | Keys added/removed at run time, non-string keys, order and size matter |
+
+```js
+const m = new Map();
+m.set("a", 1);
+m.get("a");     // 1
+m.has("a");     // true
+m.size;         // 1
+```
+
+`Map` lookups are the Phase 4 tool that kills O(n²) loops.
+
+## 8. JSON
+
+```js
+JSON.stringify(student);           // object → string (for storage / network)
+JSON.parse('{"a":1}');             // string → object
+JSON.stringify(student, null, 2);  // pretty printed
+```
+
+`JSON.stringify` silently drops `undefined`, functions, and symbols, and turns `Date` into a string. It is not a clone tool — use `structuredClone`.
+
+---
+
+## Traps recap
+
+| Trap | Reality |
+| --- | --- |
+| Arrow function as a method | No own `this` → `undefined` |
+| Detached method (`const f = obj.m`) | Loses `this`. Use `.bind(obj)` |
+| `{ ...obj }` with nested data | Nested objects are shared |
+| `obj.key` where key is a variable | Reads the literal key `"key"`. Use `obj[key]` |
+| Object keys are strings | `obj[1]` and `obj["1"]` are the same key |
+| `JSON.parse` on invalid input | Throws. Wrap in `try/catch` at any trust boundary |
+
+---
+
+## Lab
+
+```js
+// 1. Build it
+const student = {
+  name: "Ali",
+  scores: [88, 95, 72],
+  addScore(n) { },        // push and return this (chainable)
+  average() { },
+  best() { },
+  toString() { },         // "Ali: avg 85.0, best 95"
+};
+
+student.addScore(90);
+assert(student.scores.length === 4, "addScore");
+assert(student.best() === 95, "best");
+
+// 2. Group an array of objects by a field
+function groupBy(items, key) { }  // use reduce
+const people = [{city:"Tehran"},{city:"Shiraz"},{city:"Tehran"}];
+assert(groupBy(people, "city").Tehran.length === 2, "groupBy");
+
+// 3. Count word frequency in a sentence — object or Map, your choice
+function wordCount(text) { }
+assert(wordCount("a b a").a === 2, "wordCount");
+
+// 4. Explain the bug in one line, then fix it
+const config = { retries: 3 };
+const copy = { ...config };
+copy.retries = 5;
+console.log(config.retries); // 3 — why is this fine here but NOT with nested objects?
+```
+
+## Homework
+
+- javascript.info tasks in *Objects* and *Object methods, this*.
+- Model something real from your life as an object with 3 fields and 2 methods (a book, a bank account, a match). Ship it with asserts.
+
+**Due: ____**

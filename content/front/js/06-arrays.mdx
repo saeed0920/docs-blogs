@@ -1,0 +1,166 @@
+---
+title: Arrays & Array Methods
+description: Creating, reading, and transforming arrays — map, filter, reduce, find, sort, and which methods mutate.
+---
+
+# Arrays & Array Methods
+
+**Goal:** transform a list without writing a `for` loop.
+
+**Read:** [javascript.info — Arrays](https://javascript.info/array) · [Array methods](https://javascript.info/array-methods) · Udemy §4 · §11
+
+---
+
+## 1. Basics
+
+```js
+const fruits = ["apple", "banana", "cherry"];
+fruits[0];          // "apple"
+fruits.at(-1);      // "cherry"  ← last item, no length math
+fruits.length;      // 3
+fruits[10];         // undefined — no error, no bounds check
+```
+
+Arrays are objects with number keys. `typeof [] === "object"`; use `Array.isArray()`.
+
+## 2. Mutating vs non-mutating — the table that matters
+
+| Mutates the original | Returns a new array |
+| --- | --- |
+| `push` / `pop` (end) | `map` |
+| `shift` / `unshift` (start) | `filter` |
+| `splice` | `slice` |
+| `sort` ⚠️ | `concat` |
+| `reverse` ⚠️ | `[...arr]` |
+| `fill` | `flat`, `flatMap` |
+
+<Callout type="warn">
+`sort` and `reverse` mutate in place **and** return the same array. `const sorted = arr.sort()` silently reorders `arr` too. Copy first: `[...arr].sort()`.
+</Callout>
+
+```js
+arr.slice(1, 3);       // copy of items 1..2 — safe
+arr.splice(1, 2);      // removes 2 items at index 1 — destructive
+```
+
+Same first four letters, opposite behavior. Classic exam question.
+
+## 3. The four you use daily
+
+```js
+const nums = [1, 2, 3, 4, 5];
+
+nums.map(n => n * 2);            // [2,4,6,8,10]   same length, transformed
+nums.filter(n => n % 2 === 0);   // [2,4]          fewer items, same values
+nums.reduce((sum, n) => sum + n, 0); // 15         one value out
+nums.find(n => n > 3);           // 4              first match, or undefined
+```
+
+| Method | Question it answers |
+| --- | --- |
+| `map` | "Give me each item, changed." |
+| `filter` | "Give me only the items that match." |
+| `reduce` | "Give me one value from all of them." |
+| `find` / `findIndex` | "Give me the first match." |
+| `some` / `every` | "Is any / are all of them true?" |
+| `includes` / `indexOf` | "Is this value in there?" |
+| `forEach` | "Do something per item." (returns nothing) |
+
+Chain them — read left to right:
+
+```js
+const total = orders
+  .filter(o => o.paid)
+  .map(o => o.amount)
+  .reduce((sum, a) => sum + a, 0);
+```
+
+<Callout type="info">
+`reduce` has two arguments: the callback `(accumulator, item)` and the **initial value**. Always pass the initial value. `[].reduce((a,b)=>a+b)` with no initial throws `TypeError: Reduce of empty array with no initial value`.
+</Callout>
+
+## 4. Sorting
+
+```js
+[10, 9, 1].sort();               // [1, 10, 9]  ❌ compared as strings!
+[10, 9, 1].sort((a, b) => a - b); // [1, 9, 10] ✅ ascending
+[10, 9, 1].sort((a, b) => b - a); // [10, 9, 1]    descending
+
+users.sort((a, b) => a.name.localeCompare(b.name)); // strings, correct for non-ASCII
+```
+
+Default `sort` converts everything to strings. Always pass a comparator.
+
+## 5. Destructuring and spread
+
+```js
+const [first, second, ...rest] = [1, 2, 3, 4];
+// first=1, second=2, rest=[3,4]
+
+const merged = [...a, ...b];
+const copy = [...a];               // shallow copy
+const unique = [...new Set(a)];    // dedupe in one line
+```
+
+## 6. Cost
+
+| Operation | Cost |
+| --- | --- |
+| `arr[i]` | O(1) |
+| `push` / `pop` | O(1) |
+| `shift` / `unshift` | O(n) — reindexes everything |
+| `includes` / `indexOf` / `find` | O(n) |
+| `sort` | O(n log n) |
+
+`includes` **inside a loop** is O(n²) — the most common accidental slowdown. In Phase 4 you replace it with a `Set`.
+
+---
+
+## Traps recap
+
+| Trap | Reality |
+| --- | --- |
+| `[10,9,1].sort()` | String comparison → `[1,10,9]` |
+| `arr.sort()` on a `const` | Mutates the original |
+| `map` when you meant `forEach` | Builds an array you throw away |
+| `reduce` with no initial value | Throws on an empty array |
+| `arr2 = arr1` | Same array, two names. Use `[...arr1]` |
+| `delete arr[0]` | Leaves an empty hole, length unchanged. Use `splice`/`filter` |
+
+---
+
+## Lab
+
+```js
+// 1. Re-implement them yourself — no built-ins allowed
+function myMap(arr, fn) { }
+function myFilter(arr, fn) { }
+function myReduce(arr, fn, init) { }
+
+assert(myMap([1,2], n => n*2).join() === "2,4", "myMap");
+assert(myFilter([1,2,3], n => n>1).length === 2, "myFilter");
+assert(myReduce([1,2,3], (a,b) => a+b, 0) === 6, "myReduce");
+
+// 2. Real data
+const students = [
+  { name: "Ali",  score: 88, active: true  },
+  { name: "Sara", score: 95, active: true  },
+  { name: "Reza", score: 42, active: false },
+];
+
+// average score of active students
+// name of the top scorer
+// names sorted alphabetically, original array unchanged
+// { Ali: 88, Sara: 95, Reza: 42 } via reduce
+
+// 3. Find the mutation bug
+const sorted = students.sort((a, b) => b.score - a.score);
+// students is now reordered too — fix it in one character-cheap way
+```
+
+## Homework
+
+- javascript.info tasks in *Array methods* (do at least *filter range*, *sort by field*, *unique*).
+- Take one Phase 0 loop exercise and rewrite it with `map`/`filter`/`reduce`. Compare line counts.
+
+**Due: ____**

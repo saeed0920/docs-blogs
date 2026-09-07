@@ -1,0 +1,144 @@
+---
+title: Adding CSS to a Page
+description: Compare inline, internal, external, imported, and framework CSS.
+sidebar_position: 2
+---
+
+# Adding CSS to a Page
+
+There are several ways to load CSS. Use an external stylesheet for most projects.
+
+## 1. External stylesheet: the default choice
+
+```html
+<head>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+```
+
+```css
+/* styles.css */
+body {
+  font-family: system-ui, sans-serif;
+}
+```
+
+Use `<link>` for normal site styles because the browser can discover, download, and cache the file efficiently. Put it in `<head>` so the page is styled as it renders.
+
+You can split large projects into focused files:
+
+```html
+<link rel="stylesheet" href="base.css" />
+<link rel="stylesheet" href="components.css" />
+```
+
+If two rules have equal priority, the stylesheet loaded later wins.
+
+## 2. Internal CSS: useful for one page
+
+```html
+<head>
+  <style>
+    .notice {
+      color: darkred;
+    }
+  </style>
+</head>
+```
+
+Use `<style>` for a small standalone demo, an email template, or page-specific CSS that will not be reused. Avoid it for a multi-page site because the CSS is duplicated and cannot be cached separately.
+
+## 3. Inline CSS: only for truly dynamic values
+
+```html
+<div class="progress" style="--progress: 65%">65%</div>
+```
+
+Inline styles are attached with the `style` attribute. They have high cascade priority and are hard to reuse, so do not use them for regular styling. They are reasonable when a server or script supplies one dynamic custom property.
+
+## 4. CSS `@import`
+
+```css
+/* styles.css */
+@import url("./reset.css");
+@import url("./theme.css");
+
+.page {
+  max-width: 70rem;
+}
+```
+
+`@import` loads one stylesheet from another. Imports must appear before normal style rules (except `@charset` and layer declarations).
+
+It is convenient for small exercises, but plain browser `@import` can create a download chain: the browser must fetch `styles.css` before it discovers the imported files. Prefer HTML `<link>` tags for production pages unless a build tool combines the imports.
+
+Imports can include conditions:
+
+```css
+@import url("./print.css") print;
+@import url("./wide.css") screen and (min-width: 60rem);
+```
+
+## 5. Importing CSS in JavaScript
+
+Modern build tools let a component or entry file import CSS:
+
+```js
+import "./styles.css";
+```
+
+Use this in projects created with tools such as Vite, Next.js, or webpack. The build tool—not the browser's JavaScript module system—processes the CSS import.
+
+Frameworks may also support scoped files such as CSS Modules:
+
+```jsx
+import styles from "./Button.module.css";
+
+export function Button() {
+  return <button className={styles.primary}>Save</button>;
+}
+```
+
+Follow the framework's rules about where global CSS may be imported.
+
+## 6. Loading third-party CSS
+
+You can load a hosted stylesheet:
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+/>
+```
+
+For quick experiments, a CDN is convenient. For production, install the package and let your build process pin and bundle it. Do not paste a CDN URL with `latest` into production: future changes could break the page.
+
+## Which method should I use?
+
+| Method | Best use |
+| --- | --- |
+| `<link rel="stylesheet">` | Most static sites and plain HTML projects |
+| `<style>` | A small single-page demo or self-contained document |
+| `style=""` | A value generated at runtime, preferably through a CSS variable |
+| CSS `@import` | Small files or build-tool-managed imports |
+| `import "./file.css"` | Component or app projects with a bundler |
+
+## Common mistakes
+
+- Do not use `@import` inside HTML; it belongs in a CSS file or `<style>` block.
+- A relative path is resolved from the file that contains it. In `css/main.css`, `url("../images/logo.svg")` starts from the `css` folder.
+- Do not load the same stylesheet twice.
+- Do not use inline styles to solve normal cascade problems; use a class and inspect specificity.
+- Do not place a blocking stylesheet near the end of `<body>` to hide loading problems.
+
+## Practice
+
+Create an HTML page and:
+
+1. Load `base.css` and `components.css` with `<link>`
+2. Put shared colors in `:root` custom properties
+3. Add one small print stylesheet with `media="print"`
+4. Use one inline custom property for a dynamic progress value
+
+Use the browser Network panel to confirm that each file loads once and returns `200`.

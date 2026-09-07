@@ -1,0 +1,292 @@
+---
+title: CSS Grid
+description: Build two-dimensional layouts with tracks, placement, areas, alignment, and responsive grids.
+sidebar_position: 4
+---
+
+# CSS Grid
+
+CSS Grid lays content out in **rows and columns at the same time**. Use it for page shells, galleries, dashboards, and any layout where items should align across both axes.
+
+Use Flexbox when content mainly flows in one direction. Grid and Flexbox work well together: Grid for the page or card layout, Flexbox for the items inside each card.
+
+## 1. Create a grid
+
+Set `display: grid` on the parent:
+
+```css
+.grid {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr;
+  gap: 1rem;
+}
+```
+
+Every direct child becomes a grid item.
+
+- A **track** is a row or column.
+- A **grid line** is the boundary between tracks.
+- A **cell** is one row-column intersection.
+- `fr` divides the space left after fixed and content-sized tracks are calculated.
+- `gap` adds space between tracks without adding outer spacing.
+
+`200px 1fr 1fr` creates a fixed 200px first column and divides the remaining width equally between two columns.
+
+## 2. Define rows and columns
+
+```css
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto minmax(300px, 1fr) auto;
+  gap: 1rem 1.5rem; /* row gap, column gap */
+}
+```
+
+Useful track sizes:
+
+| Value | Meaning |
+| --- | --- |
+| `240px` | A fixed track |
+| `25%` | A percentage of the grid container |
+| `auto` | Size based on content and available space |
+| `min-content` | The smallest width without avoidable overflow |
+| `max-content` | The width the content prefers without wrapping |
+| `1fr` | One share of leftover space |
+| `minmax(15rem, 1fr)` | At least 15rem, otherwise share available space |
+| `repeat(4, 1fr)` | Repeat the same track four times |
+
+Prefer flexible tracks over fixed widths for responsive layouts.
+
+## 3. Explicit and implicit tracks
+
+Tracks declared with `grid-template-columns` or `grid-template-rows` form the **explicit grid**. If more items arrive, Grid creates **implicit tracks**.
+
+```css
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 10rem;
+  grid-auto-flow: row;
+}
+```
+
+`grid-auto-rows` controls rows created automatically. The default flow fills each row before starting the next one.
+
+Use `grid-auto-flow: column` to fill columns first. `dense` can backfill gaps, but it may make visual order differ from keyboard and reading order, so avoid it for interactive content.
+
+## 4. Place and span items
+
+Grid lines are numbered from `1`. Negative numbers count from the end:
+
+```css
+.hero {
+  grid-column: 1 / -1;
+}
+
+.sidebar {
+  grid-column: 1 / 2;
+  grid-row: 2 / span 2;
+}
+
+.main {
+  grid-column: 2 / -1;
+}
+```
+
+- `grid-column: 1 / -1` spans every explicit column.
+- `grid-row: 2 / span 2` starts at row line 2 and covers two tracks.
+- `grid-area: row-start / column-start / row-end / column-end` is the combined shorthand.
+
+Let auto-placement do the work when every item follows the same pattern. Add placement rules only for items that need a special position or span.
+
+## 5. Name grid lines and areas
+
+Named areas make page layouts readable:
+
+```css
+.page {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+  grid-template-areas:
+    "header header"
+    "sidebar main"
+    "footer footer";
+  min-height: 100vh;
+}
+
+.header  { grid-area: header; }
+.sidebar { grid-area: sidebar; }
+.main    { grid-area: main; }
+.footer  { grid-area: footer; }
+```
+
+Each string is a row, and each word is a column. Every row must contain the same number of cells. Use `.` for an empty cell.
+
+Named lines are useful when areas do not describe the layout well:
+
+```css
+.content {
+  display: grid;
+  grid-template-columns:
+    [full-start] 1fr
+    [content-start] minmax(0, 70rem)
+    [content-end] 1fr
+    [full-end];
+}
+
+.article {
+  grid-column: content-start / content-end;
+}
+```
+
+## 6. Responsive grids without media queries
+
+```css
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+```
+
+- `minmax()` gives every card a minimum and flexible maximum.
+- `min(100%, 16rem)` prevents overflow when the container is narrower than 16rem.
+- `auto-fit` creates as many tracks as fit and collapses empty tracks.
+- `auto-fill` keeps empty tracks, so existing items do not stretch into them.
+
+Use `auto-fit` for most fluid card galleries. Use `auto-fill` when preserving the planned column widths matters.
+
+Media queries are still useful when the **design structure** must change:
+
+```css
+.page {
+  display: grid;
+  grid-template-areas:
+    "header"
+    "main"
+    "sidebar"
+    "footer";
+}
+
+@media (min-width: 48rem) {
+  .page {
+    grid-template-columns: 16rem 1fr;
+    grid-template-areas:
+      "header header"
+      "sidebar main"
+      "footer footer";
+  }
+}
+```
+
+Keep the HTML in a logical reading order even when CSS changes where content appears.
+
+## 7. Alignment
+
+```css
+.grid {
+  display: grid;
+  min-height: 30rem;
+  justify-items: stretch;
+  align-items: center;
+  justify-content: center;
+  align-content: space-between;
+}
+
+.special {
+  justify-self: end;
+  align-self: start;
+}
+```
+
+| Property | Aligns | Affects |
+| --- | --- | --- |
+| `justify-items` | Inline (usually horizontal) axis | Items inside every cell |
+| `align-items` | Block (usually vertical) axis | Items inside every cell |
+| `place-items` | Both item axes | Shorthand for the two above |
+| `justify-content` | Inline axis | The complete grid inside its container |
+| `align-content` | Block axis | The complete grid inside its container |
+| `place-content` | Both content axes | Shorthand for the two above |
+| `justify-self` / `align-self` | One item's axes | A single item |
+
+Content alignment is only visible when the grid is smaller than its container.
+
+## 8. Nested grids and `subgrid`
+
+A nested grid normally calculates its own tracks. Use `subgrid` when child rows or columns must align with the parent:
+
+```css
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.card {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+}
+```
+
+This can align card titles, descriptions, and footers across cards with different content lengths. Check your project's browser support requirements before relying on newer features.
+
+## 9. Common mistakes
+
+- Grid properties affect **direct children**, not all descendants.
+- `1fr` can refuse to shrink below long content. Use `minmax(0, 1fr)` when overflow appears.
+- Percentage tracks plus `gap` can exceed 100%; use `fr` tracks instead.
+- Do not rearrange meaningful content only visually. Source order controls screen-reader and keyboard order.
+- Do not set both every row and every item position unless the layout truly requires it; auto-placement is simpler.
+- `justify-content` moves the grid tracks; `justify-items` moves items inside their cells.
+
+## Complete example
+
+```html
+<main class="cards">
+  <article class="card card--featured">
+    <h2>Featured course</h2>
+    <p>Learn responsive layout.</p>
+    <a href="/course">Start</a>
+  </article>
+  <article class="card">...</article>
+  <article class="card">...</article>
+</main>
+```
+
+```css
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+
+.card {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 0.75rem;
+}
+
+@media (min-width: 60rem) {
+  .card--featured {
+    grid-column: span 2;
+  }
+}
+```
+
+## Practice
+
+Build a dashboard with:
+
+1. A full-width header and footer
+2. A sidebar that becomes a normal row below `48rem`
+3. A main area containing responsive cards made with `auto-fit` and `minmax()`
+4. One featured card spanning two columns on wide screens
+5. Logical HTML order when CSS is disabled
+
+Inspect the grid with your browser's Grid overlay, then test at narrow and wide viewport sizes.
+
+Further practice: [Grid Garden](https://cssgridgarden.com/) and [MDN CSS Grid Layout](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout).

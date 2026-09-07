@@ -1,0 +1,259 @@
+---
+title: What Is JavaScript?
+description: What JS is and what it does, editor setup, Node.js install, and the three ways to run code — REPL, file, and browser console.
+---
+
+# Session 0 — What Is JavaScript?
+
+**Goal:** run your own JavaScript in three places by the end of this session.
+
+**Read:** [javascript.info — An Introduction](https://javascript.info/intro) · [Manuals & specs](https://javascript.info/manuals-specifications) · YDKJS *Get Started* ch. 1 · Udemy §1
+
+---
+
+## 1. What JS is
+
+JavaScript is the only programming language a browser runs natively. It was created in 1995 to make web pages react to the user; today the same language also runs servers (Node.js), build tools, and desktop apps.
+
+| Layer | Job | Example |
+| --- | --- | --- |
+| HTML | Structure | "there is a button here" |
+| CSS | Look | "the button is blue" |
+| **JS** | **Behavior** | **"when clicked, add an item to the list"** |
+
+JS is:
+
+- **Interpreted at run time** — no compile step you manage. The engine (V8 in Chrome/Node, SpiderMonkey in Firefox) reads and runs it.
+- **Dynamically typed** — a variable holds a number now and a string later. Powerful and dangerous; that's why [Types](/front/js/02-types) is an early lesson.
+- **Single-threaded** — one thing at a time, plus an event loop for waiting. Explained properly in Phase 3.
+
+<Callout type="info">
+JS the *language* has no `alert`, no `document`, no `fs`. Those come from the **host environment** — the browser gives you `document` and `alert`, Node gives you `fs` and `process`. Same language, different toolbox. This confuses beginners more than any syntax.
+</Callout>
+
+## 2. What you will actually do with it
+
+| You want | JS does it with |
+| --- | --- |
+| React to a click | `addEventListener` |
+| Change text on the page | `element.textContent = "..."` |
+| Load data from a server | `fetch()` |
+| Store data in the browser | `localStorage` |
+| Validate a form before sending | conditions + regex |
+| Solve algorithm problems | arrays, objects, loops |
+
+Everything in Phase 0 and 1 exists to make those six lines possible.
+
+---
+
+## 3. Editor setup
+
+Use **VS Code** (or your existing editor — don't shop for tools).
+
+1. Install VS Code.
+2. Extensions — three, no more:
+   - **Prettier** — format on save. Stop arguing about semicolons.
+   - **ESLint** — catches typos and dead variables before you run.
+   - **Live Server** — right-click an HTML file → *Open with Live Server*, reloads on save.
+3. Settings → search `format on save` → turn it on.
+
+Make a folder and open it in the editor:
+
+```bash
+mkdir -p ~/js-practice && cd ~/js-practice
+code .
+```
+
+<Callout type="warn">
+One folder per topic, not one file per topic. `~/js-practice/01-variables/`, `~/js-practice/02-types/`. You will come back to these.
+</Callout>
+
+---
+
+## 4. Install Node.js
+
+Node is the JS engine outside the browser. You need it to run `.js` files from the terminal.
+
+```bash
+# Arch
+sudo pacman -S nodejs npm
+
+# Debian / Ubuntu
+sudo apt install nodejs npm
+
+# macOS
+brew install node
+```
+
+Check it:
+
+```bash
+node -v   # v20.x or newer
+npm -v
+```
+
+`npm` is the package manager — installs libraries. You won't need it until Phase 3.
+
+---
+
+## 5. Three ways to run JS
+
+### Way 1 — Node REPL (throwaway experiments)
+
+```bash
+node
+```
+
+```js
+> 2 + 2
+4
+> let name = "Ali"
+undefined
+> `Hello ${name}`
+'Hello Ali'
+> .exit
+```
+
+REPL = Read, Eval, Print, Loop. Perfect for "what does this do?". Nothing is saved.
+
+<Callout type="info">
+The `undefined` after `let name = "Ali"` is not an error. The REPL prints the *value of the statement*, and a declaration evaluates to `undefined`. Your first JS trap.
+</Callout>
+
+### Way 2 — A file with Node (real work)
+
+`hello.js`:
+
+```js
+const name = "Ali";
+console.log("Hello", name);
+console.log(2 + 2);
+```
+
+```bash
+node hello.js
+```
+
+```
+Hello Ali
+4
+```
+
+This is how you'll do every exercise in Phase 0 and 1 — no browser needed.
+
+### Way 3 — In an HTML page (the browser)
+
+`index.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>JS Test</title>
+  </head>
+  <body>
+    <h1 id="title">Hello</h1>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+```
+
+`app.js`:
+
+```js
+console.log("script loaded");
+document.querySelector("#title").textContent = "Changed by JS";
+```
+
+Open with Live Server. The heading changes.
+
+<Callout type="warn">
+Put `<script>` at the **end of `<body>`**, not in `<head>`. In `<head>` the script runs before the `<h1>` exists → `querySelector` returns `null` → `Cannot set properties of null`. The alternative is `<script defer src="app.js">` in the head, which does the same thing more politely.
+</Callout>
+
+You can also write JS inline, but only for a quick test:
+
+```html
+<script>
+  console.log("inline");
+</script>
+```
+
+Real projects: always a separate `.js` file.
+
+---
+
+## 6. The browser console
+
+Open DevTools: <kbd>F12</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> (macOS: <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd>). Go to the **Console** tab.
+
+It is a REPL attached to the live page:
+
+```js
+document.title
+document.querySelector("h1").textContent = "Edited live"
+```
+
+Tabs you will use:
+
+| Tab | Use |
+| --- | --- |
+| **Console** | Your `console.log` output and errors. Live REPL. |
+| **Elements** | The live HTML/CSS. Check that JS changed what you think. |
+| **Network** | Requests. You'll need it for `fetch` in Phase 3. |
+| **Sources** | Set breakpoints, step through code. |
+
+### console methods worth knowing
+
+```js
+console.log("normal");
+console.table([{ id: 1, name: "Ali" }, { id: 2, name: "Sara" }]); // arrays of objects
+console.error("something broke"); // red, with stack trace
+console.warn("careful");
+```
+
+`console.table` on an array of objects is the fastest debugging tool in the language. Use it in Phase 1.
+
+### Reading an error
+
+```
+Uncaught TypeError: Cannot read properties of null (reading 'textContent')
+    at app.js:2:35
+```
+
+Read it backwards: **file `app.js`, line 2, column 35** → something was `null` → you asked `null` for `.textContent` → your `querySelector` found nothing → the selector is wrong or the script ran too early.
+
+<Callout type="warn">
+Never say "it doesn't work." Say "line 2 gave `TypeError: ... null`." The first sentence has no information; the second contains the answer.
+</Callout>
+
+---
+
+## Traps recap
+
+| Trap | Reality |
+| --- | --- |
+| `undefined` printed in REPL | Declarations evaluate to `undefined`. Not an error. |
+| `document is not defined` in Node | `document` is a browser thing. Node has no DOM. |
+| `Cannot read properties of null` | Script ran before the element existed, or the selector is wrong. |
+| Changes in the console vanish on reload | The console edits the live page, not your file. |
+
+---
+
+## Lab
+
+Create `~/js-practice/00-setup/`.
+
+1. Run `2 + 2` and a template string in the **Node REPL**.
+2. Write `hello.js` that prints your name and today's date, run it with `node hello.js`.
+3. Write `index.html` + `app.js`. The script must change the `<h1>` text and `console.log` something. Open it with Live Server and read your log in the browser console.
+4. **Break it on purpose:** move `<script>` into `<head>` without `defer`. Read the error out loud, then fix it.
+
+## Homework
+
+- javascript.info: read [Intro](https://javascript.info/intro), [Code editors](https://javascript.info/code-editors), [Developer console](https://javascript.info/devtools).
+- Write in your notes, in your own words: *what is the difference between the JS language and the host environment?*
+
+**Due: ____**

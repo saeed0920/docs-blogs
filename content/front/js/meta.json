@@ -1,0 +1,19 @@
+{
+  "title": "JavaScript",
+  "pages": [
+    "index",
+    "---Session 0 — Setup---",
+    "00-what-is-js",
+    "---Phase 0 — Basics---",
+    "01-variables",
+    "02-types",
+    "03-operators",
+    "04-conditions-loops",
+    "---Phase 0.5 — AI---",
+    "04b-ai-agents",
+    "---Phase 1 — Data---",
+    "05-functions",
+    "06-arrays",
+    "07-objects"
+  ]
+}

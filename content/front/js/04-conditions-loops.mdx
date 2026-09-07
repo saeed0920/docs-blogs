@@ -1,0 +1,176 @@
+---
+title: Conditions & Loops
+description: if / else, switch, for, while, for...of, for...in — and which loop to reach for.
+---
+
+# Conditions & Loops
+
+**Goal:** branch and repeat, and pick the right loop the first time.
+
+**Read:** [javascript.info — Conditional branching](https://javascript.info/ifelse) · [Loops](https://javascript.info/while-for) · [switch](https://javascript.info/switch) · Udemy §3
+
+---
+
+## 1. `if` / `else`
+
+```js
+if (score >= 90) {
+  grade = "A";
+} else if (score >= 80) {
+  grade = "B";
+} else {
+  grade = "F";
+}
+```
+
+Always use braces. A one-line `if` without braces is one careless edit away from a bug.
+
+**Guard clauses beat nesting:**
+
+```js
+// ❌ arrow of doom
+function pay(user) {
+  if (user) {
+    if (user.isActive) {
+      if (user.balance > 0) {
+        charge(user);
+      }
+    }
+  }
+}
+
+// ✅ exit early
+function pay(user) {
+  if (!user) return;
+  if (!user.isActive) return;
+  if (user.balance <= 0) return;
+  charge(user);
+}
+```
+
+## 2. `switch`
+
+For one value against many exact cases. Compares with `===`.
+
+```js
+switch (day) {
+  case "sat":
+  case "sun":
+    console.log("weekend");
+    break;
+  case "mon":
+    console.log("start");
+    break;
+  default:
+    console.log("midweek");
+}
+```
+
+<Callout type="warn">
+Forget `break` and execution **falls through** into the next case. Stacked cases (`"sat"` above `"sun"`) use this on purpose; everywhere else it is a bug.
+</Callout>
+
+For simple value → value mapping, an object is shorter than a `switch`:
+
+```js
+const names = { sat: "Saturday", sun: "Sunday" };
+const name = names[day] ?? "Unknown";
+```
+
+## 3. The loops
+
+| Loop | Use when |
+| --- | --- |
+| `for (let i = 0; ...)` | You need the index, or a numeric range |
+| `for...of` | You need the **values** of an array/string/Set/Map |
+| `for...in` | You need the **keys** of an object. Never for arrays |
+| `while` | Unknown count, condition-driven |
+| `do...while` | Same, but must run at least once |
+
+```js
+const arr = ["a", "b", "c"];
+
+for (let i = 0; i < arr.length; i++) console.log(i, arr[i]);
+for (const item of arr) console.log(item);            // values
+for (const key in { a: 1, b: 2 }) console.log(key);   // keys
+arr.forEach((item, i) => console.log(i, item));       // no break possible
+```
+
+<Callout type="warn">
+`for...in` on an array gives you **string** indices (`"0"`, `"1"`) and also walks inherited properties. Use `for...of` for arrays. Always.
+</Callout>
+
+```js
+let n = 10;
+while (n > 0) n--;
+
+do {
+  answer = ask();
+} while (!answer);
+```
+
+## 4. `break` and `continue`
+
+```js
+for (const n of nums) {
+  if (n < 0) continue;  // skip this one
+  if (n > 100) break;   // stop the loop
+  total += n;
+}
+```
+
+Neither works in `forEach`, `map`, or `filter`. If you need to stop early, use a real loop — or `some`/`find`, which stop by design.
+
+## 5. Nested loops and cost
+
+```js
+for (const a of listA) {
+  for (const b of listB) {  // runs |A| × |B| times
+    ...
+  }
+}
+```
+
+Two nested loops over the same data is O(n²). At 10 items nobody notices; at 10,000 the page freezes. In Phase 4 you replace most of these with a `Map` lookup. Notice them now.
+
+---
+
+## Traps recap
+
+| Trap | Reality |
+| --- | --- |
+| `for...in` over an array | Gives string keys, includes inherited props |
+| Missing `break` in `switch` | Falls through to the next case |
+| `break` inside `forEach` | `SyntaxError` — use `for...of` |
+| Modifying an array while looping it | Skipped elements. Build a new array instead |
+| `while` with no change to the condition | Infinite loop. In the browser, a frozen tab |
+
+---
+
+## Lab
+
+```js
+// 1. FizzBuzz — 1..100, "Fizz" for 3, "Buzz" for 5, "FizzBuzz" for both.
+function fizzbuzz(n) { /* return the string for one n */ }
+assert(fizzbuzz(3) === "Fizz", "3");
+assert(fizzbuzz(5) === "Buzz", "5");
+assert(fizzbuzz(15) === "FizzBuzz", "15");
+assert(fizzbuzz(7) === "7", "7");
+
+// 2. Multiplication table 1..9 with nested loops, aligned output.
+
+// 3. Sum only the positive numbers, stop at the first number over 1000.
+function sumUntil(nums) { /* use continue and break */ }
+assert(sumUntil([1, -2, 3, 2000, 5]) === 4, "sumUntil");
+
+// 4. Rewrite this for...in correctly:
+const scores = [10, 20, 30];
+for (const i in scores) console.log(i + 1); // prints "01","11","21" — why? fix it.
+```
+
+## Homework
+
+- javascript.info tasks in *Loops* (the `while` → `for` rewrites).
+- Solve 5 easy loop problems on any judge. Note how long each took — that number is your Phase 4 baseline.
+
+**Due: ____**

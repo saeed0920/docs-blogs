@@ -1,0 +1,107 @@
+---
+title: Sass, Bootstrap, and Tailwind CSS
+description: Learn what each CSS tool does and when it is worth using.
+sidebar_position: 5
+---
+
+# Sass, Bootstrap, and Tailwind CSS
+
+These tools solve different problems:
+
+- **Sass** adds language features and compiles to CSS.
+- **Bootstrap** provides ready-made components and a design system.
+- **Tailwind CSS** provides small utility classes for building your own designs.
+
+Learn plain CSS first. It makes every tool easier to use and lets you debug the generated result.
+
+## Sass
+
+[Sass](https://sass-lang.com/) is a CSS preprocessor. You write `.scss`, then Sass compiles it into a normal `.css` file that browsers understand.
+
+```scss
+$brand: #2563eb;
+
+@mixin focus-ring {
+  outline: 3px solid color-mix(in srgb, $brand 40%, transparent);
+  outline-offset: 2px;
+}
+
+.button {
+  background: $brand;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+```
+
+Use Sass when an existing project already uses it or when mixins, functions, and generated rules remove real repetition. Modern CSS already has variables, nesting, calculations, and modules such as cascade layers, so small projects often do not need Sass.
+
+Start with the [Sass installation guide](https://sass-lang.com/install/) and [Sass basics](https://sass-lang.com/guide/).
+
+## Bootstrap
+
+[Bootstrap](https://getbootstrap.com/) ships a responsive grid, utility classes, and accessible component patterns:
+
+```html
+<div class="container py-4">
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <article class="card">
+        <div class="card-body">
+          <h2 class="card-title">Course</h2>
+          <a class="btn btn-primary" href="/course">Open course</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+```
+
+Use Bootstrap for admin panels, prototypes, internal tools, and projects where standard components are more important than a unique visual identity. Customize its variables instead of fighting its styles with many overrides.
+
+Read [Bootstrap's getting started guide](https://getbootstrap.com/docs/5.3/getting-started/introduction/) and [grid documentation](https://getbootstrap.com/docs/5.3/layout/grid/).
+
+## Tailwind CSS
+
+[Tailwind CSS](https://tailwindcss.com/) provides composable utility classes:
+
+```html
+<article class="rounded-xl border border-slate-200 p-6 shadow-sm">
+  <h2 class="text-xl font-semibold text-slate-900">Course</h2>
+  <a class="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-white" href="/course">
+    Open course
+  </a>
+</article>
+```
+
+Use Tailwind in component-based applications when you want a custom design without inventing class names or switching constantly between markup and stylesheets. Avoid assembling long repeated class lists in many places; extract a component when the markup and behavior are genuinely reused.
+
+Tailwind v4 can be loaded through your build setup:
+
+```css
+@import "tailwindcss";
+```
+
+Follow the [Tailwind installation guide](https://tailwindcss.com/docs/installation) because setup differs by framework. Use the [responsive design guide](https://tailwindcss.com/docs/responsive-design) to learn breakpoint prefixes.
+
+## Which should you choose?
+
+| Need | Choose |
+| --- | --- |
+| A plain site with a small stylesheet | Plain CSS |
+| Variables and reusable code generation in an existing CSS-heavy project | Sass |
+| A working interface with standard components quickly | Bootstrap |
+| A custom component-based interface built from utilities | Tailwind CSS |
+
+Do not combine Bootstrap and Tailwind just to get more classes. They overlap, increase CSS size, and give the project two competing styling systems. Sass can be used with either, but add it only when its compiler features are needed.
+
+## Practice
+
+Build the same responsive profile card three times:
+
+1. With plain CSS
+2. With Bootstrap components and utilities
+3. With Tailwind utilities
+
+Compare setup time, HTML readability, generated CSS size, and how much work it takes to match a custom design. Keep the version that best fits the project rather than choosing by popularity.

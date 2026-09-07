@@ -1,0 +1,154 @@
+---
+title: Variables
+description: let, const, var, scope, hoisting, and naming — plus the classic var-in-a-loop trap.
+---
+
+# Variables
+
+**Goal:** store a value, know where it is visible, and know when it can change.
+
+**Read:** [javascript.info — Variables](https://javascript.info/variables) · YDKJS *Scope & Closures* ch. 1–2 · Udemy §2
+
+---
+
+## 1. Declaring
+
+```js
+let age = 20;      // can be reassigned
+const name = "Ali"; // cannot be reassigned
+var old = true;      // legacy — do not use
+```
+
+| Keyword | Reassign | Scope | Use it? |
+| --- | --- | --- | --- |
+| `const` | ❌ | block `{ }` | **Default. Start here.** |
+| `let` | ✅ | block `{ }` | When the value must change |
+| `var` | ✅ | function | Never. Know it for old code and interviews |
+
+Rule: write `const` first. Change to `let` only when the compiler-in-your-head says "this must change."
+
+## 2. Scope
+
+A variable exists only inside the block `{ }` it was declared in.
+
+```js
+{
+  const secret = 42;
+}
+console.log(secret); // ReferenceError: secret is not defined
+```
+
+Inner blocks can see outer variables. Outer can never see inner.
+
+```js
+const outer = "visible";
+{
+  const inner = "hidden";
+  console.log(outer); // "visible" ✅
+}
+console.log(inner);   // ReferenceError ❌
+```
+
+## 3. `const` does not mean frozen
+
+`const` locks the **binding**, not the contents.
+
+```js
+const user = { name: "Ali" };
+user.name = "Sara"; // ✅ allowed — same object, different contents
+user = {};          // ❌ TypeError: Assignment to constant variable
+```
+
+Same for arrays: `push` is fine, reassigning is not. This bites everyone once.
+
+## 4. Hoisting and the trap
+
+`var` is function-scoped and hoisted — it leaks out of blocks:
+
+```js
+for (var i = 0; i < 3; i++) {}
+console.log(i); // 3  — i escaped the loop
+
+for (let j = 0; j < 3; j++) {}
+console.log(j); // ReferenceError ✅ correct behavior
+```
+
+The classic:
+
+```js
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 0);
+}
+// 3 3 3  — one shared i
+
+for (let i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 0);
+}
+// 0 1 2  — a fresh i per iteration
+```
+
+<Callout type="warn">
+This is the most-asked JS interview question. The answer is one sentence: **`var` has one binding for the whole function; `let` creates a new binding each iteration.**
+</Callout>
+
+`let` and `const` are also hoisted, but unusable before their line — the *temporal dead zone*:
+
+```js
+console.log(x); // ReferenceError: Cannot access 'x' before initialization
+let x = 5;
+```
+
+## 5. Naming
+
+```js
+const userName = "Ali";     // camelCase
+const MAX_RETRIES = 3;      // SCREAMING_CASE for hard-coded constants
+const isAdmin = true;       // booleans: is / has / can
+const getUser = () => {};   // functions: verb first
+```
+
+Bad names cost more than bad code: `d`, `data2`, `temp`, `thing`.
+
+---
+
+## Traps recap
+
+| Trap | Reality |
+| --- | --- |
+| `const arr = []; arr.push(1)` | Legal. `const` locks the binding only. |
+| `var` inside a loop | One shared variable, survives the loop. |
+| Using a `let` before its line | `ReferenceError`, not `undefined`. |
+| `x = 5` with no keyword | Creates a global (silently). Always declare. |
+
+---
+
+## Lab
+
+```js
+// 1. Swap two variables without a third one
+let a = 1, b = 2;
+// your code here
+assert(a === 2 && b === 1, "swap failed");
+
+// 2. Predict, then run:
+for (var i = 0; i < 3; i++) setTimeout(() => console.log(i));
+// Write your prediction in a comment BEFORE running.
+
+// 3. Fix it using let. Explain the fix in one line.
+```
+
+Self-check helper (put it at the top of every exercise file):
+
+```js
+const assert = (cond, msg) => {
+  if (!cond) throw new Error("FAIL: " + msg);
+  console.log("ok:", msg);
+};
+```
+
+## Homework
+
+- javascript.info tasks: *Working with variables*, *Giving the right name*.
+- Find one `var` in any tutorial online, rewrite it with `let`/`const`, and say whether the behavior changed.
+
+**Due: ____**

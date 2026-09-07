@@ -1,0 +1,199 @@
+---
+title: HTML Tags and Semantics
+description: Learn which HTML tags to use, where to use them, and why semantic markup matters.
+sidebar_position: 1
+---
+
+# HTML Tags and Semantics
+
+HTML describes the **meaning and structure** of a page. CSS controls its appearance, and JavaScript controls behavior.
+
+## The basic document
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page title</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Hello, world!</h1>
+  </body>
+</html>
+```
+
+- `<html>` wraps the document. Set `lang` for screen readers and search engines.
+- `<head>` contains page metadata, not visible page content.
+- `<meta>` describes encoding, viewport, and other document information.
+- `<title>` names the browser tab and search result.
+- `<body>` contains everything displayed on the page.
+
+## Page structure tags
+
+Use these tags when their meaning matches the content:
+
+| Tag | Use it for | Do not use it for |
+| --- | --- | --- |
+| `<header>` | Introductory content for a page or section | Every visually styled heading |
+| `<nav>` | A major group of navigation links | Any random group of links |
+| `<main>` | The page's unique main content; normally one per page | Repeated headers, sidebars, or footers |
+| `<section>` | A themed group, usually with a heading | A generic styling wrapper |
+| `<article>` | Self-contained content such as a post, card, or comment | Content that makes no sense alone |
+| `<aside>` | Related but secondary content, such as a sidebar | The primary page content |
+| `<footer>` | Footer information for a page or section | Any element placed at the bottom visually |
+| `<div>` | A generic block when no semantic tag fits | Everything by default |
+| `<span>` | A generic inline wrapper for a small piece of content | Block-level page structure |
+
+```html
+<body>
+  <header>
+    <nav aria-label="Main navigation">
+      <a href="/">Home</a>
+      <a href="/articles">Articles</a>
+    </nav>
+  </header>
+
+  <main>
+    <article>
+      <h1>How CSS Grid works</h1>
+      <p>Grid lays content out in rows and columns.</p>
+    </article>
+
+    <aside>Related lessons</aside>
+  </main>
+
+  <footer>Copyright 2026</footer>
+</body>
+```
+
+Semantic tags provide meaning to browsers, search engines, and assistive technology. They do not prevent you from styling elements with classes.
+
+## Text tags
+
+| Tag | When to use it |
+| --- | --- |
+| `<h1>`–`<h6>` | A logical heading hierarchy. Start with the page's `<h1>` and do not choose levels only for size. |
+| `<p>` | A paragraph of text |
+| `<strong>` | Strong importance; normally announced with emphasis |
+| `<em>` | Stress emphasis |
+| `<br>` | A meaningful line break, such as in an address or poem—not page spacing |
+| `<blockquote>` | A longer quotation from another source |
+| `<code>` | A short piece of code |
+| `<pre>` | Preformatted text where spaces and line breaks matter |
+
+Use CSS `margin` for spacing instead of repeated `<br>` tags.
+
+## Links and media
+
+```html
+<a href="/about">About us</a>
+<a href="https://developer.mozilla.org/" target="_blank" rel="noopener">
+  MDN Web Docs
+</a>
+
+<img
+  src="team.jpg"
+  alt="The support team standing outside the office"
+  width="800"
+  height="450"
+/>
+```
+
+- Use `<a>` to **navigate** to a page or location.
+- Use `<button>` to **perform an action** such as opening a menu or submitting a form.
+- Every informative image needs useful `alt` text. Use `alt=""` for a purely decorative image.
+- Add `width` and `height` to images when known to reduce layout movement.
+- Use `<figure>` with `<figcaption>` when media needs a visible caption.
+- Use `<video>` and `<audio>` for media; include controls and captions where needed.
+
+## Lists and tables
+
+```html
+<ul>
+  <li>HTML</li>
+  <li>CSS</li>
+</ul>
+
+<ol>
+  <li>Create the file</li>
+  <li>Open it in a browser</li>
+</ol>
+```
+
+- `<ul>` is for unordered items.
+- `<ol>` is for a sequence or ranking.
+- `<dl>`, `<dt>`, and `<dd>` describe terms and values.
+
+Use a `<table>` only for tabular data, not page layout:
+
+```html
+<table>
+  <caption>Course schedule</caption>
+  <thead>
+    <tr>
+      <th scope="col">Day</th>
+      <th scope="col">Topic</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Monday</td>
+      <td>HTML</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+## Forms
+
+```html
+<form action="/signup" method="post">
+  <fieldset>
+    <legend>Create an account</legend>
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" required />
+
+    <button type="submit">Sign up</button>
+  </fieldset>
+</form>
+```
+
+- `<form>` groups controls and defines where data is sent.
+- `<label>` gives an input an accessible name. Match `for` with the input's `id`.
+- `<input>` handles short values; choose the correct type (`email`, `number`, `date`, and so on).
+- `<textarea>` handles multi-line text.
+- `<select>` offers a fixed list of choices.
+- `<fieldset>` and `<legend>` group related controls.
+- `<button type="submit">` submits; use `type="button"` for other actions inside a form.
+
+Prefer native HTML validation such as `required`, `min`, `max`, and `pattern` before adding JavaScript. Server-side validation is still required because browser validation can be bypassed.
+
+## Attributes you will use often
+
+| Attribute | Purpose |
+| --- | --- |
+| `id` | A unique page identifier; also connects labels and anchors |
+| `class` | A reusable hook for CSS or JavaScript |
+| `href` | The destination of a link |
+| `src` | The source of media or a script |
+| `alt` | Text alternative for an image |
+| `data-*` | Custom data for scripts or CSS selectors |
+| `aria-*` | Accessibility information when native HTML cannot express it |
+
+Use native elements before adding ARIA. A real `<button>` already supports keyboards and assistive technology; `<div role="button">` requires extra behavior.
+
+## Practice
+
+Build a blog page with:
+
+1. One `<header>` containing a `<nav>`
+2. One `<main>` containing two `<article>` elements
+3. Correct heading order
+4. An image with useful `alt`, `width`, and `height`
+5. A newsletter form with a label, email input, and submit button
+
+Check the result with the [W3C HTML Validator](https://validator.w3.org/) and navigate the page using only the keyboard.

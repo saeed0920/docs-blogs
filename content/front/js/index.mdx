@@ -1,0 +1,95 @@
+---
+title: JavaScript Roadmap
+description: The JavaScript track — setup, basics, and data. Sessions, sources, labs, homework. You set the deadlines.
+icon: Map
+---
+
+# JavaScript Roadmap
+
+One track, three source types. Never read all three for one topic — pick what you need.
+
+| Source | Use it for |
+| --- | --- |
+| [javascript.info](https://javascript.info) | The main text. Concepts + tasks with solutions. |
+| *You Don't Know JS* (book) | Why the language behaves that way. Read after the concept clicks. |
+| Udemy — *The Complete JavaScript Course* | Watch when reading is not enough for a topic. |
+| These pages | Summary tables, traps, labs, homework. Original content only. |
+
+<Callout type="info">
+**Deadlines are yours.** Every lesson ends with a `Due: ____` line. Fill it in before you start. A task with no date is a task that never ships.
+</Callout>
+
+## Your plan table
+
+Copy this, fill the dates, keep it where you see it.
+
+| Phase | Content | Target date |
+| --- | --- | --- |
+| 0 — Basics | variables, types, operators, conditions, loops | ____ |
+| 0.5 — AI agents | pi / opencode, API keys, rules for using AI | ____ |
+| 1 — Data | functions, arrays, objects, methods | ____ |
+
+
+---
+
+## Sessions
+
+Each session is ~2 hours: 45 min concept, 45 min lab, 30 min review of last homework.
+
+| Status | Meaning |
+| --- | --- |
+| ✅ | Written |
+| 🟡 | Stub |
+| ⬜ | Not written |
+
+### Session 0 — Setup
+
+| # | Session | Page | Lab | Status |
+| - | ------- | ---- | --- | ------ |
+| 0 | What JS is, editor, Node, browser console | [What Is JavaScript?](/front/js/00-what-is-js) | Run the same script 3 ways: Node REPL, `node file.js`, browser console | ✅ |
+
+### Phase 0 — Basics
+
+| # | Session | Page | Lab | Status |
+| - | ------- | ---- | --- | ------ |
+| 1 | Variables and scope | [Variables](/front/js/01-variables) | Swap two variables; break `var` in a loop | ✅ |
+| 2 | Types and conversion | [Types](/front/js/02-types) | Type-guess quiz, then verify with `typeof` | ✅ |
+| 3 | Operators and comparison | [Operators](/front/js/03-operators) | Truth table for `==` vs `===` | ✅ |
+| 4 | Conditions and loops | [Conditions & Loops](/front/js/04-conditions-loops) | FizzBuzz + multiplication table | ✅ |
+
+### Phase 0.5 — AI agents
+
+| # | Session | Page | Lab | Status |
+| - | ------- | ---- | --- | ------ |
+| 4.5 | AI coding agents — pi, opencode, API keys | [AI Coding Agents](/front/js/04b-ai-agents) | Run an agent on FizzBuzz, then grade its answers | ✅ |
+
+### Phase 1 — Data
+
+| # | Session | Page | Lab | Status |
+| - | ------- | ---- | --- | ------ |
+| 5 | Functions | [Functions](/front/js/05-functions) | Rewrite 3 loops as functions | ✅ |
+| 6 | Arrays and array methods | [Arrays](/front/js/06-arrays) | Re-implement `map`, `filter`, `reduce` | ✅ |
+| 7 | Objects and methods | [Objects](/front/js/07-objects) | Build a `student` object with methods | ✅ |
+
+---
+
+## Rules of the track
+
+1. **Type the code.** Copy-paste teaches nothing.
+2. **Every exercise ships an `assert`.** No test framework — see [tools](#the-toolkit).
+3. **Read the error before asking.** The message names the file and the line.
+4. **AI writes the line, you explain the line.** If you can't explain it, delete it.
+
+## The toolkit
+
+You build one small `js-toolkit/` over the track and reuse it in every project:
+
+```js
+// toolkit.js — grows as the track goes
+export const $ = (sel, root = document) => root.querySelector(sel);
+export const assert = (cond, msg) => {
+  if (!cond) throw new Error("FAIL: " + msg);
+};
+```
+
+Nothing else until a project actually needs it.

@@ -1,0 +1,164 @@
+---
+title: Types
+description: The 8 types, primitives vs objects, typeof, and type conversion — where JS silently changes your data.
+---
+
+# Types
+
+**Goal:** name the type of any value, and predict what JS converts it to.
+
+**Read:** [javascript.info — Data types](https://javascript.info/types) · [Type conversions](https://javascript.info/type-conversions) · YDKJS *Types & Grammar* ch. 1–4 · Udemy §2
+
+---
+
+## 1. The eight types
+
+Seven primitives + object.
+
+| Type | Example | Note |
+| --- | --- | --- |
+| `number` | `42`, `3.14`, `NaN`, `Infinity` | One number type. No int/float split. |
+| `string` | `"a"`, `'a'`, `` `a` `` | Immutable. |
+| `boolean` | `true`, `false` | |
+| `null` | `null` | "Intentionally empty." |
+| `undefined` | `undefined` | "Not assigned yet." |
+| `bigint` | `9007199254740993n` | Huge integers. Rare. |
+| `symbol` | `Symbol("id")` | Unique keys. Rare. |
+| `object` | `{}`, `[]`, `function(){}` | Everything else. |
+
+```js
+typeof 42          // "number"
+typeof "hi"        // "string"
+typeof true        // "boolean"
+typeof undefined   // "undefined"
+typeof {}          // "object"
+typeof []          // "object"   ← arrays are objects
+typeof null        // "object"   ← famous bug, kept for compatibility
+typeof function(){}// "function" ← functions are objects too
+```
+
+<Callout type="warn">
+`typeof null === "object"` is a bug from 1995 that can never be fixed without breaking the web. To test for an array use `Array.isArray(x)`. To test for null use `x === null`.
+</Callout>
+
+## 2. Primitive vs object — copy vs reference
+
+```js
+let a = 1;
+let b = a;
+b = 2;
+console.log(a); // 1 — primitives copy the value
+
+let x = { n: 1 };
+let y = x;
+y.n = 2;
+console.log(x.n); // 2 — objects copy the reference
+```
+
+Same object, two names. This single rule explains 80% of "why did my array change?" bugs in Phase 1.
+
+Copying properly:
+
+```js
+const copy = { ...x };        // shallow copy of an object
+const arrCopy = [...arr];     // shallow copy of an array
+const deep = structuredClone(x); // deep copy, built into the browser and Node 17+
+```
+
+Shallow means nested objects are still shared. Reach for `structuredClone` only when you actually have nesting.
+
+## 3. `null` vs `undefined`
+
+```js
+let a;              // undefined — never assigned
+let b = null;       // null — deliberately empty
+```
+
+Engine gives you `undefined`. You give yourself `null`.
+
+## 4. Conversion
+
+### To string
+
+```js
+String(42)     // "42"
+42 + ""        // "42"  (implicit)
+`${42}`        // "42"
+```
+
+### To number
+
+```js
+Number("42")    // 42
+Number("42px")  // NaN
+Number("")      // 0      ← surprise
+Number(null)    // 0      ← surprise
+Number(undefined) // NaN
+Number(true)    // 1
++"42"           // 42     (shorthand)
+parseInt("42px")// 42     (stops at the first non-digit)
+```
+
+`NaN` = "Not a Number", and it is a `number`. It infects everything: `NaN + 1 === NaN`. Test with `Number.isNaN(x)` — never `x === NaN`, which is always `false`.
+
+### To boolean (truthiness)
+
+Only **8 falsy values** exist. Memorize them; everything else is truthy.
+
+```js
+false, 0, -0, 0n, "", null, undefined, NaN
+```
+
+```js
+Boolean("0")   // true   ← non-empty string
+Boolean([])    // true   ← empty array is truthy
+Boolean({})    // true
+Boolean(" ")   // true   ← a space is a character
+```
+
+<Callout type="info">
+`[]` is truthy, but `[] == false` is `true`. Two different rules: `if ([])` uses truthiness, `==` converts both sides to numbers. Use `===` and this never matters.
+</Callout>
+
+---
+
+## Traps recap
+
+| Expression | Result | Why |
+| --- | --- | --- |
+| `typeof null` | `"object"` | 1995 bug |
+| `Number("")` | `0` | Empty string converts to zero |
+| `0.1 + 0.2` | `0.30000000000000004` | IEEE-754 floats — same in every language |
+| `NaN === NaN` | `false` | Use `Number.isNaN` |
+| `"5" + 3` | `"53"` | `+` prefers string concatenation |
+| `"5" - 3` | `2` | `-` has no string meaning → converts to number |
+
+Money rule: never store money as a float. Store cents as integers.
+
+---
+
+## Lab
+
+```js
+// Predict each line in a comment BEFORE running. Then run and compare.
+console.log(typeof NaN);
+console.log("5" + 3, "5" - 3);
+console.log(Number(""), Number(" "), Number("a"));
+console.log(Boolean([]), Boolean(""), Boolean("false"));
+console.log(0.1 + 0.2 === 0.3);
+
+// Write it: safe number parser
+function toNumber(value) {
+  // return the number, or null if it cannot convert
+}
+assert(toNumber("42") === 42, "digits");
+assert(toNumber("42px") === null, "junk rejected");
+assert(toNumber("") === null, "empty rejected");
+```
+
+## Homework
+
+- javascript.info tasks in *Type conversions*.
+- Write the 8 falsy values from memory. Check. Repeat until you get 8/8.
+
+**Due: ____**
