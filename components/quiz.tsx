@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, KeyboardEvent } from "react";
-import CodeMirror, { EditorView } from "@uiw/react-codemirror";
+import CodeMirror from "@uiw/react-codemirror";
+import { EditorView } from "@codemirror/view";
 import { javascript } from "@codemirror/lang-javascript";
 import { css } from "@codemirror/lang-css";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -177,8 +178,8 @@ function useVimBindings(
 
   useEffect(() => {
     if (!enabled) return;
-    const view = editorRef.current;
-    if (!view) return;
+    if (!editorRef.current) return;
+    const view: EditorView = editorRef.current;
 
     // We use a simple overlay keydown listener on the CM dom element
     const dom = view.dom;
