@@ -43,12 +43,12 @@ Enable Pages in the repo: **Settings → Pages → Source: GitHub Actions**.
 ## TODO
 
 - [x] Static build for nextjs and GitHub Pages
-- [] Front course
-- [x] Signal summery month
-- [] Git workshop docs
-- [] Domjduge documents
+- [ ] Front course
+- [x] Signal summary month
+- [ ] Git workshop docs
+- [ ] DOMjudge documents
 - [x] Try to create blogs : Add BCPC - Charbug - or anything you want
-- [] Create post in linkdin
+- [ ] Create post on LinkedIn
 - [x] Add in github and build with github pages
 - [x] Remove the puzzley stuff
-- [] make the docs order
+- [x] Order docs navigation
