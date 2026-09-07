@@ -1,0 +1,769 @@
+---
+title: Processes & System Monitoring
+description: Process lifecycle, PID/PPID, zombies and orphans, ps output formats, pgrep/pkill, pstree, lsof, and the system monitoring toolkit — top, free, vmstat, iostat, uptime, df/du — for LPIC-1 topic 103.5.
+icon: Activity
+---
+
+import Quiz from "@/components/quiz";
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+# Processes & System Monitoring
+
+Every command you run becomes a **process**. When a server slows down, hangs, or fills its disk,
+your job is to find *which* process is responsible and what to do about it. This lesson covers the
+process lifecycle, the tools that inspect it, and the monitoring commands that tell you where the
+resources went.
+
+<Callout type="info">
+This page builds on [Streams, Pipes, Redirects & Process Management](/lpic1/ai-linux), which covers
+signals, `kill`, jobs, and `nice`/`renice`. Read that one first — here we go deeper into *finding*
+and *diagnosing* processes.
+</Callout>
+
+---
+
+## What a process actually is
+
+A process is a running instance of a program, plus the state the kernel tracks for it: its memory,
+its open file descriptors, its owner, and its scheduling priority.
+
+| Attribute | Meaning |
+| --------- | ------- |
+| **PID** | Process ID — unique number identifying this process |
+| **PPID** | Parent Process ID — the process that created it |
+| **UID / GID** | The user and group the process runs as (decides its permissions) |
+| **State** | Running, sleeping, stopped, or zombie |
+| **TTY** | Terminal it's attached to, or `?` if it has none (a daemon) |
+
+```bash
+echo $$        # PID of your current shell
+echo $PPID     # PID of whatever started your shell
+```
+
+### fork and exec — how processes are born
+
+Linux creates every new process the same way:
+
+1. **`fork()`** — a process duplicates itself, creating a child that is a near-copy of the parent.
+2. **`exec()`** — the child replaces its own memory image with a different program.
+
+That's why every process has a parent. When you type `ls` in bash, bash forks a copy of itself,
+and the copy execs `/usr/bin/ls`.
+
+```bash
+$ pstree -p | head -5
+systemd(1)─┬─NetworkManager(742)
+           ├─sshd(1120)───sshd(3301)───bash(3305)───pstree(4102)
+```
+
+Read that chain right to left: `pstree` was started by `bash`, which was started by an `sshd`
+session, which came from the main `sshd` daemon, which was started by `systemd` — **PID 1**, the
+ancestor of everything.
+
+<Callout type="info">
+PID 1 (`systemd` on modern distros, `init` on older ones) is the first process the kernel starts
+and the ultimate parent of all others. It can never be killed.
+</Callout>
+
+---
+
+## Process states
+
+The `STAT` / `S` column in `ps` tells you what a process is doing right now.
+
+| Code | State | Meaning |
+| :--: | ----- | ------- |
+| `R` | Running | Executing on the CPU, or queued and ready to |
+| `S` | Interruptible sleep | Waiting for an event (input, network, timer) — most processes |
+| `D` | Uninterruptible sleep | Blocked on I/O, **cannot be killed** until it returns |
+| `T` | Stopped | Suspended, usually by `Ctrl + Z` or `SIGSTOP` |
+| `Z` | Zombie | Finished, but its parent hasn't collected its exit status |
+
+Extra flags you'll see appended:
+
+| Flag | Meaning |
+| :--: | ------- |
+| `s` | Session leader |
+| `+` | In the foreground process group |
+| `l` | Multi-threaded |
+| `<` | High priority (negative nice value) |
+| `N` | Low priority (positive nice value) |
+
+```bash
+$ ps aux | awk '{print $8}' | sort | uniq -c | sort -rn
+     84 S
+     12 I
+      3 R
+      1 Z
+```
+
+That one-liner counts processes by state — a quick way to spot zombies or a pile-up of `D` state
+processes stuck on a failing disk.
+
+### Zombies and orphans
+
+These two get confused constantly, and the exam asks about them.
+
+| | Zombie | Orphan |
+| --- | ------ | ------ |
+| **What happened** | Child exited, parent never called `wait()` to read its exit code | Parent died while the child was still running |
+| **State shown** | `Z` in `ps`, often `<defunct>` | Normal (`S`/`R`) |
+| **Resources used** | None — only a process table entry | Normal process resources |
+| **Who fixes it** | Kill the **parent**; `init`/`systemd` then reaps the zombie | `init`/`systemd` adopts it automatically (PPID becomes 1) |
+
+```bash
+$ ps aux | grep 'Z'
+user  5012  0.0  0.0   0   0 ?  Z  10:14  0:00 [backup.sh] <defunct>
+$ ps -o ppid= -p 5012      # Find the parent that isn't reaping it
+ 4998
+$ kill 4998                # Kill the parent; systemd reaps the zombie
+```
+
+<Callout type="warn">
+You cannot `kill -9` a zombie — it's already dead. The entry disappears only when its parent reaps
+it, or when the parent dies and `systemd` adopts and reaps it. A handful of zombies is harmless; a
+growing pile means a buggy parent program.
+</Callout>
+
+---
+
+## `ps` — the process snapshot
+
+`ps` accepts three different, historically incompatible option styles. This trips people up.
+
+| Style | Example | Note |
+| ----- | ------- | ---- |
+| BSD (no dash) | `ps aux` | Most common in the wild |
+| UNIX (single dash) | `ps -ef` | POSIX standard |
+| GNU (double dash) | `ps --forest` | Long options |
+
+**The two you must memorize:**
+
+```bash
+ps aux      # BSD: every process, all users, with %CPU and %MEM
+ps -ef      # UNIX: every process, full format, shows PPID
+```
+
+### Reading `ps aux` output
+
+```bash
+$ ps aux | head -3
+USER   PID %CPU %MEM    VSZ   RSS TTY  STAT START   TIME COMMAND
+root     1  0.0  0.4 168404 11284 ?    Ss   09:01   0:03 /sbin/init
+mysql  892 12.4  8.2 1284400 336112 ?  Ssl  09:02   4:17 /usr/sbin/mysqld
+```
+
+| Column | Meaning |
+| ------ | ------- |
+| `%CPU` | Percent of one CPU used — can exceed 100% on multi-core |
+| `%MEM` | Percent of physical RAM used |
+| `VSZ` | Virtual memory size in KB — includes swapped and unused reservations |
+| `RSS` | **Resident Set Size** in KB — actual physical RAM held. Trust this one |
+| `START` | When the process began |
+| `TIME` | Total CPU time consumed (not wall-clock age) |
+
+<Callout type="info">
+`VSZ` is almost always alarmingly large and almost always irrelevant. When someone asks "how much
+memory is this using?", the answer is **RSS**.
+</Callout>
+
+### Custom output with `-o`
+
+This is the most useful `ps` skill, and it appears on the exam.
+
+```bash
+ps -eo pid,ppid,user,ni,stat,%cpu,%mem,comm
+```
+
+Sort it to answer real questions:
+
+```bash
+ps -eo pid,comm,%mem --sort=-%mem | head -6     # Top 5 memory consumers
+ps -eo pid,comm,%cpu --sort=-%cpu | head -6     # Top 5 CPU consumers
+```
+
+```bash
+$ ps -eo pid,comm,%mem --sort=-%mem | head -4
+  PID COMMAND         %MEM
+  892 mysqld           8.2
+ 2481 firefox          5.1
+ 1544 gnome-shell      3.7
+```
+
+The `-` in `--sort=-%mem` means descending. Without it you'd get the smallest first.
+
+### Other useful forms
+
+```bash
+ps -u alice            # All processes owned by user alice
+ps -C sshd             # All processes matching command name sshd
+ps -p 1234             # One specific PID
+ps -ejH                # Process hierarchy (indented tree)
+ps auxf                # BSD-style ASCII art tree
+ps -eLf                # Show threads (LWP column)
+```
+
+---
+
+## Finding processes: `pgrep` and `pkill`
+
+`ps aux | grep name` works but always matches the `grep` itself. `pgrep` doesn't.
+
+```bash
+pgrep sshd             # Print PIDs matching the name
+pgrep -l sshd          # PID + name
+pgrep -u alice         # PIDs owned by alice
+pgrep -f "python.*worker"   # Match against the FULL command line, not just the name
+```
+
+```bash
+$ pgrep -a nginx
+1201 nginx: master process /usr/sbin/nginx
+1202 nginx: worker process
+```
+
+`pkill` takes the same selectors and sends a signal instead of printing:
+
+```bash
+pkill nginx                    # SIGTERM to every matching process
+pkill -9 -f "python.*worker"   # SIGKILL by full command line
+pkill -u alice                 # Kill everything alice is running
+pkill -HUP nginx               # Reload config without stopping the service
+```
+
+<Callout type="warn">
+Test with `pgrep` before running `pkill`. `pkill -f python` will kill *every* Python process on the
+box, including ones you didn't mean. Look before you shoot.
+</Callout>
+
+### `pstree` — the family tree
+
+```bash
+pstree              # Whole tree, compact
+pstree -p           # With PIDs
+pstree -u alice     # Only alice's processes
+pstree -p 1234      # Subtree under one PID
+```
+
+Useful when a service spawns workers and you need to know whether killing the parent takes the
+children with it.
+
+---
+
+## `lsof` — what has this file (or port) open?
+
+`lsof` = **l**i**s**t **o**pen **f**iles. Since Linux treats sockets and devices as files, it also
+answers network and device questions.
+
+```bash
+lsof -p 1234              # Everything PID 1234 has open
+lsof /var/log/syslog      # Which processes have this file open
+lsof -u alice             # Every file alice has open
+lsof -i :80               # Which process is listening on port 80
+lsof -i -P -n             # All network connections, numeric ports and IPs
+lsof +D /mnt/backup       # Everything open under a directory
+```
+
+**Worked example — "the disk is full but deleting files didn't help":**
+
+```bash
+$ lsof | grep deleted
+mysqld  892  mysql  4w  REG  8,1  4831838208  131  /var/log/mysql/slow.log (deleted)
+```
+
+The file was deleted, but `mysqld` still holds the descriptor open, so the kernel won't free the
+space. Restarting the process (or truncating via `/proc/892/fd/4`) releases it.
+
+**Worked example — "port 8080 is already in use":**
+
+```bash
+$ lsof -i :8080
+COMMAND   PID  USER  FD  TYPE  DEVICE  NODE NAME
+java     3391  tomcat 44u IPv6  38291   TCP *:8080 (LISTEN)
+```
+
+---
+
+## `/proc` — processes as files
+
+The kernel exposes every process as a directory under `/proc/<PID>/`. Every tool above is really
+just reading these files.
+
+| Path | Contains |
+| ---- | -------- |
+| `/proc/<PID>/cmdline` | Full command line that started it |
+| `/proc/<PID>/status` | Human-readable state, memory, UID, threads |
+| `/proc/<PID>/environ` | Environment variables it was given |
+| `/proc/<PID>/cwd` | Symlink to its current working directory |
+| `/proc/<PID>/exe` | Symlink to the actual binary on disk |
+| `/proc/<PID>/fd/` | Directory of its open file descriptors |
+| `/proc/<PID>/limits` | Its resource limits (ulimits) |
+
+```bash
+$ cat /proc/892/status | grep -E 'Name|State|VmRSS|Threads'
+Name:	mysqld
+State:	S (sleeping)
+VmRSS:	  336112 kB
+Threads:	37
+```
+
+```bash
+$ tr '\0' ' ' < /proc/892/cmdline
+/usr/sbin/mysqld --daemonize --pid-file=/run/mysqld/mysqld.pid
+```
+
+<Callout type="info">
+`cmdline` and `environ` separate entries with **null bytes**, not spaces — hence the `tr '\0' ' '`.
+Plain `cat` makes them look like one run-together string.
+</Callout>
+
+System-wide files in `/proc` matter too:
+
+```bash
+cat /proc/cpuinfo     # CPU model, cores, flags
+cat /proc/meminfo     # Detailed memory breakdown
+cat /proc/loadavg     # Load averages + running/total processes
+cat /proc/uptime      # Seconds since boot
+```
+
+---
+
+## System monitoring toolkit
+
+### `uptime` and load average
+
+```bash
+$ uptime
+ 11:42:07 up 14 days,  3:22,  2 users,  load average: 0.42, 1.15, 2.03
+```
+
+The three numbers are the average number of processes **running or waiting** over the last
+**1, 5, and 15 minutes**.
+
+<Callout type="info">
+Compare load average against your **core count** (`nproc`). A load of `4.0` is fully saturated on a
+4-core box and only half-busy on an 8-core box. Read the trend: `0.42, 1.15, 2.03` means load is
+falling — the spike already passed.
+</Callout>
+
+### `free` — memory
+
+```bash
+$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       4.2Gi       1.1Gi       312Mi        10Gi        10Gi
+Swap:          4.0Gi          0B       4.0Gi
+```
+
+| Column | Meaning |
+| ------ | ------- |
+| `used` | Actively allocated by processes |
+| `free` | Completely untouched — **low free is normal and good** |
+| `buff/cache` | Disk cache the kernel will surrender instantly on demand |
+| `available` | **The real answer** — what a new process could get |
+
+<Callout type="warn">
+"My server only has 1.1 GB free!" is the most common false alarm in Linux. Linux deliberately uses
+spare RAM as disk cache. Read the **`available`** column, not `free`.
+</Callout>
+
+Swap being *used* isn't automatically bad either — swap being actively *thrashed* is. Check
+`vmstat`'s `si`/`so` columns for that.
+
+### `vmstat` — the fastest whole-system read
+
+```bash
+$ vmstat 2 3        # Sample every 2 seconds, 3 times
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 2  0      0 1148320 220144 9982232   0    0    31    52  412  788  6  2 91  1  0
+ 1  0      0 1147104 220144 9982240   0    0     0    24  388  742  4  1 95  0  0
+```
+
+<Callout type="info">
+Always pass an interval. `vmstat` with no arguments shows averages **since boot**, which tells you
+nothing about right now. The first row is always that boot average — ignore it.
+</Callout>
+
+The columns that diagnose things:
+
+| Column | Watch for |
+| ------ | --------- |
+| `r` | Processes waiting for CPU. Consistently > core count = CPU bound |
+| `b` | Processes blocked on I/O. Consistently high = disk bound |
+| `si` / `so` | Swap in / out. Non-zero and sustained = **thrashing**, add RAM |
+| `wa` | CPU % idle-waiting on I/O. High = disk is the bottleneck |
+| `id` | CPU % idle |
+
+### `iostat` — disk throughput
+
+```bash
+iostat -xz 2        # Extended stats, skip idle devices, every 2s
+```
+
+Key columns: `%util` (how busy the device is) and `await` (average ms per I/O request). A device at
+`%util` near 100 with a climbing `await` is your bottleneck.
+
+<Callout type="info">
+`iostat`, `sar`, `mpstat`, and `pidstat` ship in the **`sysstat`** package, which is often not
+installed by default. `apt install sysstat` / `dnf install sysstat`.
+</Callout>
+
+### `df` and `du` — disk space
+
+```bash
+df -h            # Free space per mounted filesystem
+df -i            # INODE usage — the other way a disk "fills up"
+du -sh /var/*    # Size of each item in /var, summarized
+du -h --max-depth=1 /var | sort -h    # Same, sorted smallest to largest
+```
+
+<Callout type="warn">
+If `df -h` says there's space but writes fail with "No space left on device", check `df -i`. You've
+exhausted **inodes** — millions of tiny files (often an unrotated mail or session directory) — not
+bytes.
+</Callout>
+
+### `top` — the live view
+
+`top` is interactive. The keys are worth memorizing:
+
+| Key | Action |
+| :-: | ------ |
+| `P` | Sort by CPU |
+| `M` | Sort by memory |
+| `T` | Sort by cumulative time |
+| `k` | Kill a process (prompts for PID) |
+| `r` | Renice a process |
+| `u` | Filter by user |
+| `1` | Toggle per-CPU-core breakdown |
+| `c` | Toggle full command line |
+| `H` | Toggle thread view |
+| `q` | Quit |
+
+The header lines are the same data `uptime`, `free`, and `vmstat` give you, condensed.
+
+`htop` is friendlier — colour bars, mouse support, scrolling, `F5` tree view — but it is **not
+guaranteed installed** on an exam system or a minimal server. Know `top`.
+
+### `watch` — poor man's monitor
+
+```bash
+watch -n 2 'ps -eo pid,comm,%cpu --sort=-%cpu | head'
+watch -d free -h        # -d highlights what changed between refreshes
+```
+
+---
+
+## Cheat-sheet
+
+| Command | Purpose |
+| ------- | ------- |
+| `ps aux` / `ps -ef` | Full process snapshot (BSD / UNIX style) |
+| `ps -eo pid,ppid,ni,comm --sort=-%mem` | Custom columns, sorted |
+| `pgrep -a name` | Find PIDs by name, with command line |
+| `pkill -9 -f pattern` | Signal processes by full command-line match |
+| `pstree -p` | Parent/child tree with PIDs |
+| `top` | Live interactive monitor |
+| `lsof -p PID` | Files open by a process |
+| `lsof -i :PORT` | What is listening on a port |
+| `cat /proc/PID/status` | Raw kernel view of one process |
+| `uptime` | Load averages (1, 5, 15 min) |
+| `nproc` | Core count — the number load average is measured against |
+| `free -h` | Memory; read the **available** column |
+| `vmstat 2` | Whole-system sampling: CPU, memory, swap, I/O |
+| `iostat -xz 2` | Per-device disk utilization |
+| `df -h` / `df -i` | Filesystem space / inode usage |
+| `du -sh dir` | Size of a directory |
+| `watch -n 2 cmd` | Re-run a command on an interval |
+
+---
+
+## Hands-on lab
+
+Run these on a VM you can safely break. Install `stress` or use the `sleep`/`yes` fallbacks.
+
+### Challenge 1 — Identify your own shell
+
+1. Print your shell's PID and its parent's PID.
+2. Confirm the parent is what you expect using `ps`.
+
+```bash
+echo $$
+echo $PPID
+ps -p $PPID -o pid,comm
+```
+
+### Challenge 2 — Build and inspect a background process
+
+1. Start `sleep 600` in the background.
+2. Find its PID with `pgrep`, not `ps | grep`.
+3. Show its state, nice value, and parent PID in one `ps` command.
+
+```bash
+sleep 600 &
+pgrep -a sleep
+ps -o pid,ppid,ni,stat,comm -p $(pgrep -n sleep)
+```
+
+### Challenge 3 — Find the top consumers
+
+1. List the 5 processes using the most memory.
+2. List the 5 using the most CPU.
+3. Explain why `VSZ` differs so much from `RSS` for one of them.
+
+```bash
+ps -eo pid,comm,%mem,rss --sort=-%mem | head -6
+ps -eo pid,comm,%cpu --sort=-%cpu | head -6
+```
+
+### Challenge 4 — Create load and watch it
+
+1. Generate CPU load: `stress --cpu 2 --timeout 60` (or `yes > /dev/null &` twice).
+2. In a second terminal, watch `vmstat 2` and `uptime`.
+3. Identify which `vmstat` column proves the CPU is the bottleneck.
+
+```bash
+stress --cpu 2 --timeout 60 &     # or: yes > /dev/null & yes > /dev/null &
+vmstat 2 5
+uptime
+```
+
+### Challenge 5 — Kill it properly
+
+1. Find the load generator by name with `pgrep`.
+2. Send `SIGTERM` first, verify.
+3. If it survives, escalate to `SIGKILL`.
+
+```bash
+pgrep -a stress
+pkill stress
+pgrep stress || echo "gone"
+pkill -9 stress
+```
+
+### Challenge 6 — Make a zombie
+
+1. Run the snippet below — it forks a child that exits while the parent sleeps without reaping.
+2. Find the zombie in `ps` (state `Z`).
+3. Remove it by killing the parent.
+
+```bash
+# Parent forks a child that exits immediately, then sleeps without reaping it
+python3 -c 'import os,time
+if os.fork()==0: os._exit(0)
+time.sleep(300)' &
+
+ps -eo pid,ppid,stat,comm | awk '$3 ~ /^Z/'
+# then: kill <the PPID shown> — you cannot kill the zombie itself
+```
+
+### Challenge 7 — Track down an open file
+
+1. Open a file in a background process: `tail -f /var/log/syslog &`
+2. Use `lsof` to prove which PID holds it open.
+3. Find the same information through `/proc`.
+
+```bash
+tail -f /var/log/syslog &
+lsof /var/log/syslog
+ls -l /proc/$(pgrep -n tail)/fd
+```
+
+### Challenge 8 — Mini investigation
+
+**Scenario:** users report the server "feels slow." Produce a one-paragraph verdict backed by
+commands. Determine:
+
+- Is load high relative to core count? (`uptime`, `nproc`)
+- Is memory genuinely exhausted, or just cached? (`free -h`, read `available`)
+- Is it swapping? (`vmstat 2 5`, columns `si`/`so`)
+- Is a disk saturated? (`iostat -xz 2`, `%util`/`await`)
+- Which single process is the largest consumer? (`ps -eo ... --sort=`)
+
+### Bonus
+
+- Write a one-liner that prints a count of processes per state code.
+- Find every process owned by a user other than root that is listening on a network port.
+- Use `renice` to lower a running job's priority, and prove it changed with `ps`.
+
+---
+
+## Practice questions
+
+<Accordions>
+  <Accordion title="What is the difference between a zombie and an orphan process?">
+    A **zombie** has already exited, but its parent never called `wait()` to
+    collect the exit status, so its process-table entry lingers in state `Z`.
+    An **orphan** is still running, but its parent died — `init`/`systemd`
+    (PID 1) adopts it and its PPID becomes 1. Zombies consume no resources
+    beyond a table entry; orphans are ordinary running processes.
+  </Accordion>
+  <Accordion title="Why can't you kill a zombie process with kill -9?">
+    Because it is already dead. Signals are delivered to running processes;
+    a zombie has no code left to execute. The entry is cleared only when its
+    parent reaps it — so you kill the **parent**, and `systemd` adopts and
+    reaps the zombie.
+  </Accordion>
+  <Accordion title="What is the difference between VSZ and RSS in ps output?">
+    `VSZ` is total virtual memory the process has mapped, including memory
+    it reserved but never touched and pages swapped out. `RSS` (Resident Set
+    Size) is the physical RAM actually held right now. For "how much memory
+    is this using?", `RSS` is the meaningful number.
+  </Accordion>
+  <Accordion title="A server shows very little free memory. Is that a problem?">
+    Usually not. Linux uses otherwise-idle RAM as disk cache (`buff/cache`)
+    and releases it instantly when a process needs memory. The column that
+    matters in `free -h` is **`available`**, which accounts for reclaimable
+    cache.
+  </Accordion>
+  <Accordion title="What does a load average of 4.00 mean?">
+    On average, 4 processes were running or waiting to run over that
+    interval. Whether that's bad depends on core count: on a 4-core system
+    it's fully saturated; on an 8-core system it's about half load. Compare
+    against `nproc`.
+  </Accordion>
+  <Accordion title="Why should you pass an interval to vmstat?">
+    Without an interval, `vmstat` prints a single line of averages since
+    **boot**, which says nothing about current conditions. `vmstat 2` samples
+    every 2 seconds; the first line is still the boot average and should be
+    ignored.
+  </Accordion>
+  <Accordion title="df -h shows free space but writes fail with 'No space left on device'. Why?">
+    The filesystem has run out of **inodes**, not bytes — typically from a
+    huge number of very small files. Check with `df -i`.
+  </Accordion>
+  <Accordion title="What advantage does pgrep have over 'ps aux | grep name'?">
+    `pgrep` matches only actual processes, so it never matches the `grep`
+    command itself the way `ps aux | grep` does. It also supports selectors
+    like `-u` (by user) and `-f` (match the full command line), and outputs
+    clean PIDs suitable for piping into other commands.
+  </Accordion>
+  <Accordion title="A deleted log file didn't free any disk space. What happened?">
+    A process still holds an open file descriptor to it. The kernel frees the
+    blocks only when the last descriptor closes. Find the holder with
+    `lsof | grep deleted`, then restart or signal that process.
+  </Accordion>
+</Accordions>
+
+---
+
+## Quiz
+
+<Quiz
+  title="Processes & Monitoring — check yourself"
+  pass={70}
+  showVimToggle={true}
+  questions={[
+    {
+      type: "multiple",
+      question:
+        "A process shows state 'Z' in ps output. What is the correct way to remove it?",
+      options: [
+        "Run kill -9 on the zombie's PID",
+        "Kill its parent process so init/systemd reaps it",
+        "Reboot the system, it is the only way",
+        "Run renice 19 on the zombie's PID"
+      ],
+      correctIndex: 1,
+      explanation:
+        "A zombie is already dead and cannot receive signals. Its entry is cleared when the parent reaps it — killing the parent makes systemd adopt and reap the zombie."
+    },
+    {
+      type: "multiple",
+      question:
+        "In `free -h` output, which column best answers 'how much memory can a new process actually get?'",
+      options: ["free", "used", "available", "buff/cache"],
+      correctIndex: 2,
+      explanation:
+        "`available` accounts for reclaimable page cache. `free` looks alarmingly low on a healthy Linux system because the kernel deliberately caches with spare RAM."
+    },
+    {
+      type: "bash",
+      question:
+        "Show every process with PID, PPID, nice value and command name, sorted by memory usage descending. Pipe it to head.",
+      expectedAnswer: "ps -eo pid,ppid,ni,comm --sort=-%mem | head",
+      hint: "ps -eo <columns> --sort=-%mem",
+      explanation:
+        "`-e` selects all processes, `-o` picks columns, and `--sort=-%mem` sorts descending (the leading minus means reverse)."
+    },
+    {
+      type: "bash",
+      question:
+        "Find which process is listening on port 8080, showing numeric ports and addresses.",
+      expectedAnswer: "lsof -i :8080 -P -n",
+      hint: "lsof with -i, plus flags to skip name resolution",
+      explanation:
+        "`-i :8080` filters to that port, `-P` keeps port numbers numeric instead of resolving to service names, `-n` skips DNS lookups."
+    },
+    {
+      type: "multiple",
+      question:
+        "In `vmstat 2` output, sustained non-zero values in the 'si' and 'so' columns indicate what?",
+      options: [
+        "High disk read throughput",
+        "The system is swapping (thrashing) — likely needs more RAM",
+        "Too many system interrupts",
+        "Processes stuck in uninterruptible sleep"
+      ],
+      correctIndex: 1,
+      explanation:
+        "`si`/`so` are swap-in and swap-out. Occasional values are fine, but sustained activity means active RAM is being pushed to disk, which destroys performance."
+    },
+    {
+      type: "bash",
+      question:
+        "Send SIGHUP to every nginx process, matching against the process name.",
+      expectedAnswer: "pkill -HUP nginx",
+      hint: "pkill can take a signal name just like kill",
+      explanation:
+        "SIGHUP typically makes a daemon reload its configuration without a full restart, so connections aren't dropped."
+    },
+    {
+      type: "multiple",
+      question:
+        "`df -h` reports 40% used, but writes fail with 'No space left on device'. What should you check next?",
+      options: [
+        "df -i to check inode exhaustion",
+        "free -h to check memory",
+        "vmstat to check swap usage",
+        "top to find the process writing"
+      ],
+      correctIndex: 0,
+      explanation:
+        "A filesystem can exhaust its inode table while bytes remain free, usually from a very large number of tiny files. `df -i` reveals it."
+    },
+    {
+      type: "bash",
+      question:
+        "Print the PIDs and full command lines of all processes owned by user alice.",
+      expectedAnswer: "pgrep -a -u alice",
+      hint: "pgrep has a user selector and a flag to show the command line",
+      explanation:
+        "`-u alice` selects by owner and `-a` prints the full command line beside each PID."
+    },
+    {
+      type: "multiple",
+      question:
+        "Which /proc path shows the full command line that started process 1234?",
+      options: [
+        "/proc/1234/status",
+        "/proc/1234/cmdline",
+        "/proc/1234/exe",
+        "/proc/1234/environ"
+      ],
+      correctIndex: 1,
+      explanation:
+        "`cmdline` holds the arguments, separated by null bytes — use `tr '\\0' ' ' < /proc/1234/cmdline` to read it. `exe` is a symlink to the binary, `environ` holds environment variables."
+    },
+    {
+      type: "bash",
+      question:
+        "Re-run 'free -h' every 2 seconds, highlighting changes between refreshes.",
+      expectedAnswer: "watch -n 2 -d free -h",
+      hint: "watch has an interval flag and a difference-highlighting flag",
+      explanation:
+        "`-n 2` sets the interval to 2 seconds and `-d` highlights what changed since the previous refresh."
+    }
+  ]}
+/>

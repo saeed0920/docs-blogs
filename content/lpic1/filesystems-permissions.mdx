@@ -1,0 +1,263 @@
+---
+title: Filesystems and Permissions
+description: Create, mount, inspect, and secure Linux filesystems using standard LPIC-1 tools.
+---
+
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+
+# Filesystems and Permissions
+
+A disk becomes useful after Linux divides it into partitions, creates filesystems, and mounts them into one directory tree.
+
+<Callout type="warn">
+Partitioning and formatting can destroy data. Use a disposable VM and verify device names with `lsblk` before every command.
+</Callout>
+
+## From disk to files
+
+```text
+Disk → Partition → Filesystem → Mount point
+```
+
+Example:
+
+```text
+/dev/sdb → /dev/sdb1 → ext4 → /mnt/data
+```
+
+Inspect storage first:
+
+```bash
+lsblk -f                  # devices, filesystems, UUIDs, mount points
+blkid                     # filesystem type and UUID
+df -h                     # mounted filesystem space
+df -i                     # inode usage
+du -sh /var/log           # size of one directory
+```
+
+## Create a partition and filesystem
+
+Use `fdisk` for a simple MBR or GPT partitioning exercise:
+
+```bash
+sudo fdisk /dev/sdb
+```
+
+Inside `fdisk`, common commands are:
+
+| Key | Action |
+| --- | --- |
+| `p` | Print partition table |
+| `n` | Create partition |
+| `d` | Delete partition |
+| `w` | Write changes and exit |
+| `q` | Exit without saving |
+
+Create a filesystem only after confirming the partition name:
+
+```bash
+sudo mkfs.ext4 /dev/sdb1
+sudo mkfs.xfs /dev/sdb1       # alternative filesystem
+sudo mkfs.vfat /dev/sdb1      # FAT filesystem
+```
+
+## Mount and unmount
+
+```bash
+sudo mkdir -p /mnt/data
+sudo mount /dev/sdb1 /mnt/data
+findmnt /mnt/data
+sudo umount /mnt/data
+```
+
+Linux mounts filesystems into directories. The original directory contents are hidden while another filesystem is mounted there.
+
+If `umount` reports that a target is busy:
+
+```bash
+lsof +D /mnt/data
+fuser -vm /mnt/data
+```
+
+## Persistent mounts with `/etc/fstab`
+
+Device names such as `/dev/sdb1` can change. UUIDs are safer.
+
+```bash
+sudo blkid /dev/sdb1
+```
+
+Example `/etc/fstab` entry:
+
+```text
+UUID=1234-ABCD  /mnt/data  ext4  defaults  0  2
+```
+
+Fields:
+
+| Field | Meaning |
+| --- | --- |
+| 1 | Device, UUID, or label |
+| 2 | Mount point |
+| 3 | Filesystem type |
+| 4 | Mount options |
+| 5 | `dump` backup flag |
+| 6 | Filesystem check order |
+
+Test changes without rebooting:
+
+```bash
+sudo mount -a
+findmnt --verify
+```
+
+<Callout type="warn">
+Always test `/etc/fstab` before rebooting. A bad entry can interrupt boot.
+</Callout>
+
+## Swap
+
+```bash
+sudo mkswap /dev/sdb2
+sudo swapon /dev/sdb2
+swapon --show
+sudo swapoff /dev/sdb2
+```
+
+Persistent swap uses an `/etc/fstab` entry:
+
+```text
+UUID=5678-EFGH  none  swap  sw  0  0
+```
+
+## Check and repair filesystems
+
+```bash
+sudo fsck /dev/sdb1            # check an unmounted filesystem
+sudo e2fsck -f /dev/sdb1       # force ext filesystem check
+sudo tune2fs -l /dev/sdb1      # show ext filesystem settings
+```
+
+Never run repair tools on a mounted read-write filesystem unless documentation explicitly permits it.
+
+## Permissions
+
+Inspect permissions:
+
+```bash
+ls -l file.txt
+```
+
+Example output begins with:
+
+```text
+-rwxr-x---
+```
+
+The first character is file type. Remaining characters are permissions for **owner**, **group**, and **others**.
+
+| Permission | Value | Meaning for files | Meaning for directories |
+| --- | ---: | --- | --- |
+| `r` | 4 | Read content | List names |
+| `w` | 2 | Change content | Create or remove entries |
+| `x` | 1 | Execute | Enter and access entries |
+
+```bash
+chmod 640 report.txt           # rw-r-----
+chmod u+x script.sh            # add execute for owner
+chmod g-w shared.txt           # remove group write
+chown alice report.txt         # change owner
+chown alice:developers report.txt
+chgrp developers report.txt    # change group
+```
+
+## `umask`
+
+`umask` removes permissions from defaults:
+
+```bash
+umask
+umask 027
+```
+
+Common starting permissions are `666` for files and `777` for directories. With `umask 027`, new files become `640` and directories become `750`.
+
+## Special permissions
+
+| Permission | Numeric | Effect |
+| --- | ---: | --- |
+| SUID | `4000` | Executable runs with file owner's effective UID |
+| SGID | `2000` | Executable uses file group; directories inherit group |
+| Sticky bit | `1000` | Directory entries removable only by owner, directory owner, or root |
+
+```bash
+chmod 4755 program
+chmod 2775 shared-directory
+chmod 1777 public-directory
+find / -perm -4000 -type f 2>/dev/null
+```
+
+## Hard and symbolic links
+
+```bash
+ln original.txt hard-link.txt
+ln -s original.txt symbolic-link.txt
+ls -li original.txt hard-link.txt symbolic-link.txt
+```
+
+| Hard link | Symbolic link |
+| --- | --- |
+| Same inode as target | Stores target path |
+| Usually cannot cross filesystems | Can cross filesystems |
+| Survives original filename deletion | Breaks if target disappears |
+
+## Find files and commands
+
+```bash
+find /var/log -type f -name '*.log'
+locate sshd_config
+which bash
+whereis bash
+type cd
+```
+
+`updatedb` refreshes the database used by `locate`.
+
+## Hands-on lab
+
+Using a disposable extra disk:
+
+1. Create one partition.
+2. Format it as ext4.
+3. Mount it at `/mnt/lab`.
+4. Add it to `/etc/fstab` by UUID.
+5. Create `/mnt/lab/shared` with SGID and mode `2775`.
+6. Create one hard link and one symbolic link.
+7. Unmount, run `fsck`, then mount again.
+
+## Quick reference
+
+| Task | Command |
+| --- | --- |
+| Inspect devices | `lsblk -f`, `blkid` |
+| Create filesystem | `mkfs.ext4 DEVICE` |
+| Mount | `mount DEVICE DIR` |
+| Test `fstab` | `mount -a`, `findmnt --verify` |
+| Check space | `df -h`, `du -sh DIR` |
+| Change mode | `chmod MODE FILE` |
+| Change owner | `chown USER:GROUP FILE` |
+| Create symbolic link | `ln -s TARGET LINK` |
+
+## Review questions
+
+<Accordions>
+  <Accordion title="Why should /etc/fstab normally use UUIDs instead of /dev/sdb1?">
+    Kernel device names can change when hardware order changes. A filesystem UUID remains tied to that filesystem.
+  </Accordion>
+  <Accordion title="What does chmod 2750 shared mean?">
+    Owner gets `rwx`, group gets `r-x`, others get no access, and SGID makes new entries inherit the directory's group.
+  </Accordion>
+  <Accordion title="Why can a hard link survive deletion of the original filename?">
+    Both names point directly to the same inode. Data remains until the final hard link is removed and no process holds the file open.
+  </Accordion>
+</Accordions>

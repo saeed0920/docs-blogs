@@ -1,0 +1,172 @@
+---
+title: Package Management
+description: Install, inspect, upgrade, and remove software with Debian and RPM package tools.
+---
+
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+
+# Package Management
+
+Linux packages contain software, metadata, dependencies, and installation scripts. Package managers keep these files organized and make upgrades repeatable.
+
+<Callout type="info">
+LPIC-1 tests both Debian-family tools (`dpkg`, `apt`) and Red Hat-family tools (`rpm`, `dnf`). Practice both.
+</Callout>
+
+## Packages and repositories
+
+A **package file** contains one program or library. A **repository** is a server containing many packages and an index.
+
+Two tool levels matter:
+
+| Level | Debian family | Red Hat family | Handles dependencies? |
+| --- | --- | --- | --- |
+| Low-level | `dpkg` | `rpm` | No |
+| Repository tool | `apt` | `dnf` | Yes |
+
+Use `apt` or `dnf` for normal work. Use `dpkg` or `rpm` when inspecting or installing a local package file.
+
+## Debian: `apt` and `dpkg`
+
+```bash
+sudo apt update                 # refresh repository metadata
+apt search nginx                # search packages
+apt show nginx                  # show package details
+sudo apt install nginx          # install with dependencies
+sudo apt upgrade                # upgrade installed packages
+sudo apt remove nginx           # remove package, keep config
+sudo apt purge nginx            # remove package and config
+sudo apt autoremove             # remove unused dependencies
+```
+
+Inspect installed packages with `dpkg`:
+
+```bash
+dpkg -l                         # list installed packages
+dpkg -l bash                    # inspect one package
+dpkg -L bash                    # list files installed by package
+dpkg -S /bin/bash               # find package owning a file
+dpkg -s bash                    # show package status
+sudo dpkg -i package.deb        # install local .deb file
+sudo dpkg -r package-name       # remove package
+```
+
+If `dpkg -i` leaves missing dependencies:
+
+```bash
+sudo apt --fix-broken install
+```
+
+## Red Hat: `dnf` and `rpm`
+
+```bash
+dnf search nginx                # search packages
+dnf info nginx                  # show package details
+sudo dnf install nginx          # install with dependencies
+sudo dnf upgrade                # upgrade installed packages
+sudo dnf remove nginx           # remove package
+sudo dnf autoremove             # remove unused dependencies
+```
+
+Inspect installed packages with `rpm`:
+
+```bash
+rpm -qa                          # list installed packages
+rpm -q bash                      # query one package
+rpm -qi bash                     # show package information
+rpm -ql bash                     # list files installed by package
+rpm -qf /bin/bash                # find package owning a file
+rpm -qR bash                     # show package requirements
+sudo rpm -ivh package.rpm        # install local .rpm file
+sudo rpm -e package-name         # remove package
+```
+
+Prefer this for local RPM files because it resolves dependencies:
+
+```bash
+sudo dnf install ./package.rpm
+```
+
+## Verify package files
+
+```bash
+dpkg -V package-name             # Debian: verify installed files
+rpm -V package-name              # RPM: verify installed files
+rpm --checksig package.rpm       # check RPM signature
+```
+
+No output from `rpm -V` normally means no differences were found.
+
+## Package locations
+
+| Family | Package format | Repository configuration |
+| --- | --- | --- |
+| Debian | `.deb` | `/etc/apt/sources.list`, `/etc/apt/sources.list.d/` |
+| Red Hat | `.rpm` | `/etc/yum.repos.d/*.repo` |
+
+## Linux as a virtualization guest
+
+A guest OS runs inside a virtual machine. Install guest tools when available so shutdown, time synchronization, networking, and display resizing work correctly.
+
+```bash
+systemd-detect-virt              # detect VM or container environment
+lscpu | grep Hypervisor          # show hypervisor information
+```
+
+Common guest packages include `qemu-guest-agent`, `open-vm-tools`, and VirtualBox Guest Additions.
+
+## Hands-on lab
+
+Use one Debian-family VM and one Red Hat-family VM.
+
+1. Refresh repository metadata.
+2. Search for `tree`.
+3. Display its package information.
+4. Install it.
+5. Find which files it installed.
+6. Find which package owns the `tree` executable.
+7. Remove it.
+
+```bash
+# Debian family
+sudo apt update
+apt search '^tree$'
+sudo apt install tree
+dpkg -L tree
+command -v tree
+dpkg -S "$(command -v tree)"
+sudo apt remove tree
+
+# Red Hat family
+dnf search tree
+sudo dnf install tree
+rpm -ql tree
+command -v tree
+rpm -qf "$(command -v tree)"
+sudo dnf remove tree
+```
+
+## Quick reference
+
+| Task | Debian | Red Hat |
+| --- | --- | --- |
+| Refresh metadata | `apt update` | automatic with `dnf` |
+| Search | `apt search NAME` | `dnf search NAME` |
+| Install | `apt install NAME` | `dnf install NAME` |
+| Remove | `apt remove NAME` | `dnf remove NAME` |
+| List package files | `dpkg -L NAME` | `rpm -ql NAME` |
+| Find file owner | `dpkg -S FILE` | `rpm -qf FILE` |
+
+## Review questions
+
+<Accordions>
+  <Accordion title="Why should you normally use apt or dnf instead of dpkg or rpm?">
+    `apt` and `dnf` use repositories and resolve dependencies. `dpkg` and `rpm` operate directly on package files or the local package database.
+  </Accordion>
+  <Accordion title="What is the difference between apt remove and apt purge?">
+    `remove` keeps package configuration files. `purge` removes those configuration files too.
+  </Accordion>
+  <Accordion title="How do you find which package owns /bin/bash?">
+    Use `dpkg -S /bin/bash` on Debian-family systems or `rpm -qf /bin/bash` on RPM-family systems.
+  </Accordion>
+</Accordions>

@@ -1,0 +1,624 @@
+---
+title: "CTF — Processes & Monitoring"
+description: A capture-the-flag lab for LPIC-1 topic 103.5. Ten linear challenges on a seeded environment — hunt hidden processes, reap a zombie, recover disk space held by a deleted file, and diagnose a system under load. Each answer produces a verifiable flag.
+icon: Flag
+---
+
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+# CTF — Processes & Monitoring
+
+Ten challenges, in order, each harder than the last. You run them on **your own VM** — a setup
+script seeds the environment, and every challenge yields a **flag** you can verify yourself.
+
+**Covers:** [Streams, Pipes & Process Management](/lpic1/ai-linux) ·
+[Processes & System Monitoring](/lpic1/processes)
+
+<Callout type="warn">
+Run this on a **VM or container you can safely break** — not your daily driver, not a production
+box. The setup script starts background processes and creates files under `~/lpic-ctf`. The
+cleanup command removes all of it.
+</Callout>
+
+---
+
+## Setup
+
+Save the script below as `ctf-setup.sh`, then run it.
+
+```bash
+chmod +x ctf-setup.sh
+./ctf-setup.sh
+```
+
+When you're finished with the whole CTF:
+
+```bash
+./ctf-setup.sh cleanup
+```
+
+<Accordions>
+<Accordion title="ctf-setup.sh — click to expand (don't read the internals, it's the answer key)">
+
+```bash
+#!/usr/bin/env bash
+# LPIC-1 CTF — Processes & Monitoring. Seeds the challenge environment.
+set -u
+CTF="$HOME/lpic-ctf"
+
+stop_all() {
+  for n in cronjob-helper ctf-hog ctf-zombie ctf-holder ctf-listener; do
+    pkill -f "$CTF/$n" 2>/dev/null
+  done
+  sleep 1
+}
+
+if [ "${1:-start}" = "cleanup" ]; then
+  stop_all
+  rm -rf "$CTF"
+  echo "[*] Cleaned up."
+  exit 0
+fi
+
+stop_all
+rm -rf "$CTF"
+mkdir -p "$CTF/logs"
+cd "$CTF" || exit 1
+PY="$(command -v python3)"
+
+# 1 - process hiding behind an innocent name
+cp "$(command -v sleep)" "$CTF/cronjob-helper"
+nohup "$CTF/cronjob-helper" 7200 >/dev/null 2>&1 &
+
+# 2 - deprioritized process (nice 19)
+cp "$(command -v sleep)" "$CTF/ctf-hog"
+nohup nice -n 19 "$CTF/ctf-hog" 7200 >/dev/null 2>&1 &
+
+# 3 - zombie: child exits, parent sleeps without reaping
+printf 'import os,time\nif os.fork()==0: os._exit(0)\ntime.sleep(7200)\n' > "$CTF/.z.py"
+cp "$PY" "$CTF/ctf-zombie"
+nohup "$CTF/ctf-zombie" "$CTF/.z.py" >/dev/null 2>&1 &
+
+# 4 - deleted file still held open by a running process
+dd if=/dev/zero of="$CTF/logs/huge.log" bs=1M count=20 status=none
+cp "$(command -v tail)" "$CTF/ctf-holder"
+nohup "$CTF/ctf-holder" -f "$CTF/logs/huge.log" >/dev/null 2>&1 &
+sleep 1
+rm -f "$CTF/logs/huge.log"
+
+# 5 - listener on an unusual port
+printf 'import socket,time\ns=socket.socket()\ns.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)\ns.bind(("127.0.0.1",54321))\ns.listen(5)\ntime.sleep(7200)\n' > "$CTF/.l.py"
+cp "$PY" "$CTF/ctf-listener"
+nohup "$CTF/ctf-listener" "$CTF/.l.py" >/dev/null 2>&1 &
+
+sleep 1
+echo "[*] CTF environment seeded in $CTF"
+echo "[*] Cleanup when done:  ./ctf-setup.sh cleanup"
+```
+
+**Requires:** `python3`, `lsof`, and `procps` (`ps`, `pgrep`, `pkill`, `vmstat`, `free`).
+On Debian: `sudo apt install lsof procps python3`. On RHEL: `sudo dnf install lsof procps-ng python3`.
+
+</Accordion>
+</Accordions>
+
+---
+
+## How to check a flag
+
+Paste this function into your shell once:
+
+```bash
+checkflag() {
+  h=$(printf '%s' "$2" | sha256sum | cut -c1-12)
+  if [ "$h" = "$1" ]; then echo "✅ CORRECT"; else echo "❌ wrong"; fi
+}
+```
+
+Then verify any answer against the hash given in each challenge:
+
+```bash
+$ checkflag ceb0d1b38a1c 'LPIC{some-guess}'
+❌ wrong
+```
+
+<Callout type="info">
+Flags are always in the form `LPIC{...}`. Use **single quotes** — the braces are shell syntax
+otherwise. The hash only reveals whether you're right, never the answer, so guessing is useless.
+</Callout>
+
+---
+
+## Rules
+
+1. **No reading `ctf-setup.sh`.** It's the answer key.
+2. Solve with **commands**, not by guessing strings.
+3. `man` pages allowed and encouraged. Search engines discouraged.
+4. Write down the command that got you each flag — you'll be asked to justify it.
+
+---
+
+## Challenge 1 — The impostor
+
+**Difficulty:** ★☆☆☆☆
+
+The setup started a suspicious process whose executable is stored inside `~/lpic-ctf`.
+
+**Use a process-search command to display full command lines, then identify that executable's filename.**
+Do not submit its PID, arguments, or full path. For example, if the command line contains
+`~/lpic-ctf/example 7200`, submit `example`.
+
+Flag format: `LPIC{name-of-binary}`
+Verify against: `ceb0d1b38a1c`
+
+<Accordions>
+<Accordion title="Hint 1">
+`pgrep` can match against the **full command line**, not just the process name. Which flag does that?
+</Accordion>
+<Accordion title="Hint 2">
+Try `pgrep -af lpic-ctf` — `-a` shows the full command line beside the PID.
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+pgrep -af lpic-ctf
+# or
+ps -ef | grep lpic-ctf
+```
+
+The binary is `cronjob-helper` — a name chosen to look like a legitimate cron task.
+
+```bash
+checkflag ceb0d1b38a1c 'LPIC{cronjob-helper}'
+```
+
+**Lesson:** a process name proves nothing. As *How Linux Works* notes, a process can even change
+its own COMMAND field. Names are a hint, never evidence.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 2 — Unmasking the impostor
+
+**Difficulty:** ★☆☆☆☆
+
+The suspicious `cronjob-helper` file is a renamed copy of a standard system program.
+
+**Find its PID, inspect `/proc/<PID>/exe`, then compare that executable's checksum with likely
+standard programs to identify the matching program.** The flag records the investigation technique,
+so submit the exact fixed flag shown below after confirming the match yourself.
+
+Flag format: `LPIC{proc_exe_reveals_all}`
+Verify against: `6e9642b1296e`
+
+<Accordions>
+<Accordion title="Hint 1">
+Every process has a `/proc/<PID>/` directory. One entry there is a symlink to the actual binary on
+disk.
+</Accordion>
+<Accordion title="Hint 2">
+`/proc/<PID>/exe`. Read the symlink with `readlink`, then checksum the referenced file and compare
+it with likely system binaries such as `sleep`.
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+PID=$(pgrep -f lpic-ctf/cronjob-helper | head -1)
+readlink /proc/$PID/exe
+ls -l /proc/$PID/exe
+
+# Compare the file itself against the real thing:
+md5sum ~/lpic-ctf/cronjob-helper "$(command -v sleep)"
+```
+
+Identical checksums — it's a copy of `/usr/bin/sleep`. The flag is the concept, not the path:
+
+```bash
+checkflag 6e9642b1296e 'LPIC{proc_exe_reveals_all}'
+```
+
+**Lesson:** `/proc/<PID>/exe` identifies the exact executable inode, even if its pathname is later
+deleted. A renamed copy still keeps its new pathname, so use a checksum to prove which standard
+binary it matches.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 3 — The polite process
+
+**Difficulty:** ★★☆☆☆
+
+One process running from `~/lpic-ctf` was started at the lowest CPU scheduling priority.
+
+**Display the seeded processes with their `NI` (nice) values and submit the largest nice value you find.**
+Remember: larger nice value means lower CPU priority.
+
+Flag format: `LPIC{ni_<value>}` — for example `LPIC{ni_5}`
+Verify against: `5c058b6627f9`
+
+<Accordions>
+<Accordion title="Hint 1">
+`ps -eo` lets you pick columns. The nice column is `ni`. You can sort with `--sort`.
+</Accordion>
+<Accordion title="Hint 2">
+`ps -eo pid,ni,comm --sort=-ni | head` — the leading `-` sorts descending.
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+ps -eo pid,ni,comm --sort=-ni | head
+# Focus on the CTF processes only:
+ps -o pid,ni,comm -p $(pgrep -d, -f lpic-ctf)
+```
+
+`ctf-hog` runs at nice **19** — the lowest priority a process can have.
+
+```bash
+checkflag 5c058b6627f9 'LPIC{ni_19}'
+```
+
+**Lesson:** the scale is **-20 (highest priority) to 19 (lowest)**. Higher number = "nicer" = yields
+more CPU to others. Only root can set a negative value.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 4 — The undead
+
+**Difficulty:** ★★☆☆☆
+
+The setup created a child process that exited, but its parent did not collect its exit status.
+It now appears with state `Z` (zombie).
+
+**Find the zombie's PID and PPID, terminate the parent identified by that PPID, then confirm the
+zombie disappeared.** Submit the fixed flag only after verification.
+
+Flag format: `LPIC{zombie_reaped}`
+Verify against: `b42d302dbf38`
+
+<Accordions>
+<Accordion title="Hint 1">
+Zombies show state `Z` in the `STAT` column and often display as `<defunct>`.
+</Accordion>
+<Accordion title="Hint 2">
+You cannot kill a zombie — it's already dead. Kill the **parent** (`PPID`) so `systemd` adopts and
+reaps it.
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+# Find it
+ps -eo pid,ppid,stat,comm | awk '$3 ~ /^Z/'
+#   PID   PPID STAT COMMAND
+# 153984 153978 Z   ctf-zombie <defunct>
+
+# Kill the PARENT, not the zombie
+kill 153978
+
+# Verify
+ps -eo pid,ppid,stat,comm | awk '$3 ~ /^Z/'
+```
+
+```bash
+checkflag b42d302dbf38 'LPIC{zombie_reaped}'
+```
+
+**Lesson:** `kill -9 <zombie_pid>` does nothing — there's no process left to signal. The entry
+clears only when the parent reaps it, or the parent dies and PID 1 adopts it.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 5 — The vanishing disk space
+
+**Difficulty:** ★★★☆☆
+
+The setup created a 20 MB file, opened it in a process, then deleted its directory entry. Because
+the process still holds the file open, its disk space remains allocated.
+
+**Find the open file marked `(deleted)` and submit its filename.** Do not submit its directory path.
+
+Flag format: `LPIC{filename}` — just the filename, not the path
+Verify against: `435df6d0b764`
+
+<Accordions>
+<Accordion title="Hint 1">
+The kernel frees a file's blocks only when the **last open file descriptor** to it closes. A process
+still has it open.
+</Accordion>
+<Accordion title="Hint 2">
+`lsof` marks these. Try `lsof | grep deleted`, or the precise form `lsof -a +L1 -p <PID>` (`+L1` =
+link count below 1).
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+lsof | grep -i deleted
+# ctf-holder 153982 user 3r REG 0,51 20971520 ... /home/user/lpic-ctf/logs/huge.log (deleted)
+
+# Or via /proc:
+ls -l /proc/$(pgrep -f ctf-holder)/fd | grep deleted
+```
+
+The file is `huge.log`.
+
+```bash
+checkflag 435df6d0b764 'LPIC{huge.log}'
+```
+
+**Recover the space** by killing the holder (or truncating through its descriptor):
+
+```bash
+: > /proc/$(pgrep -f ctf-holder)/fd/3     # truncate without stopping the process
+# or simply:
+pkill -f ctf-holder
+```
+
+**Lesson:** the classic "`df` says full but `du` says empty" incident. Always
+`lsof | grep deleted` before rebooting a full server.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 6 — Who's on my port?
+
+**Difficulty:** ★★★☆☆
+
+A seeded process is listening for TCP connections on `127.0.0.1`. Its port is between `54000` and
+`55000`.
+
+**List listening TCP sockets with numeric ports, find the seeded listener, and submit its port
+number only.**
+
+Flag format: `LPIC{port}`
+Verify against: `7016275e8e65`
+
+<Accordions>
+<Accordion title="Hint 1">
+`lsof -i` lists network files. `ss -lntp` lists listening TCP sockets with the owning process.
+</Accordion>
+<Accordion title="Hint 2">
+`ss -lntp | grep 54` — or `lsof -i -P -n | grep LISTEN`. `-P` and `-n` stop name resolution so you
+see raw numbers.
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+ss -lntp | grep 127.0.0.1
+lsof -i -P -n | grep LISTEN
+lsof -i :54321 -P -n
+```
+
+Port **54321**, held by `ctf-listener`.
+
+```bash
+checkflag 7016275e8e65 'LPIC{54321}'
+```
+
+**Lesson:** `-P -n` matters. Without them, `lsof` resolves ports to service names and IPs to
+hostnames — slow, and it hides the number you're looking for.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 7 — The memory panic
+
+**Difficulty:** ★★★☆☆
+
+A server has 16 GB of RAM, but `free -h` reports only 900 MB in the `free` column. Linux may be
+using otherwise idle RAM as reclaimable cache, so this alone does not prove memory exhaustion.
+
+**Run `free -h` and name the column that estimates how much memory a new process can use without
+swapping.**
+
+Flag format: `LPIC{<column>_not_free}`
+Verify against: `9a86af99d33c`
+
+<Accordions>
+<Accordion title="Hint 1">
+Linux deliberately spends idle RAM on disk cache. That cache is handed back instantly on demand.
+</Accordion>
+<Accordion title="Hint 2">
+Compare the `free` column against the last column of `free -h` output.
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+free -h
+#         total   used   free   shared  buff/cache   available
+# Mem:     15Gi   4.2Gi  1.1Gi   312Mi       10Gi         10Gi
+```
+
+`buff/cache` is reclaimable. **`available`** is the honest number.
+
+```bash
+checkflag 9a86af99d33c 'LPIC{available_not_free}'
+```
+
+**Lesson:** low `free` is **normal and desirable** on Linux — unused RAM is wasted RAM. The false
+"out of memory" alarm is the single most common misreading in Linux administration.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 8 — Proving it's swapping
+
+**Difficulty:** ★★★★☆
+
+Having allocated swap does not necessarily mean the system is under current memory pressure.
+Repeated movement of pages between RAM and swap is stronger evidence.
+
+**Run `vmstat` with an interval and identify the two columns that show pages moving into and out of
+swap.** Submit their abbreviations in the same left-to-right order shown by `vmstat`.
+
+Flag format: `LPIC{<col1>_<col2>_thrashing}`
+Verify against: `a03b3ff06201`
+
+<Accordions>
+<Accordion title="Hint 1">
+Run `vmstat 2 5`. Look at the group of columns headed `---swap--`.
+</Accordion>
+<Accordion title="Hint 2">
+Two short column names, "swap in" and "swap out".
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+vmstat 2 5
+# procs -----------memory---------- ---swap-- -----io----
+#  r  b   swpd   free   buff  cache   si   so    bi    bo
+```
+
+`si` (swap in) and `so` (swap out).
+
+```bash
+checkflag a03b3ff06201 'LPIC{si_so_thrashing}'
+```
+
+**Lesson:** swap *allocated* is harmless; swap *actively moving* destroys performance. Also note
+`vmstat` with no interval prints averages **since boot** — always pass an interval, and ignore the
+first row.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 9 — Full but empty
+
+**Difficulty:** ★★★★☆
+
+`df -h` shows that a filesystem still has free bytes, but creating a new file fails with
+`No space left on device`. A filesystem can exhaust its file-entry capacity before exhausting its
+storage bytes.
+
+**Which command checks inode usage for each filesystem?** Submit the command and option joined by
+an underscore.
+
+Flag format: `LPIC{command_with_flag}` — e.g. command `ls -l` becomes `LPIC{ls_-l}`
+Verify against: `01fe30138ec1`
+
+<Accordions>
+<Accordion title="Hint 1">
+A filesystem tracks two finite resources. Bytes is one. What's the other?
+</Accordion>
+<Accordion title="Hint 2">
+Every file consumes one **inode**, regardless of size. Millions of tiny files exhaust the table
+while bytes remain.
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+df -h    # bytes — looks fine
+df -i    # inodes — IUse% at 100%
+```
+
+```bash
+checkflag 01fe30138ec1 'LPIC{df_-i}'
+```
+
+**Lesson:** usual culprits are unrotated mail spools, PHP session directories, and runaway cache
+dirs. Find them with:
+
+```bash
+sudo du --inodes -x -d3 / 2>/dev/null | sort -rn | head
+```
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 10 — The final verdict
+
+**Difficulty:** ★★★★★
+
+`uptime` reports `load average: 7.82, 7.44, 6.91`. These numbers alone cannot tell you whether the
+machine is overloaded: the same load affects a 4-core and 16-core machine differently.
+
+**Name the command that prints the available CPU core count, which you must compare with load
+average.**
+
+Flag format: `LPIC{load_vs_<command>}`
+Verify against: `51162b643687`
+
+<Accordions>
+<Accordion title="Hint 1">
+Load average counts processes running **or waiting** to run. Waiting for what resource?
+</Accordion>
+<Accordion title="Hint 2">
+A load of 7.82 saturates a 4-core box but leaves a 16-core box mostly idle. What prints the core
+count?
+</Accordion>
+<Accordion title="Solution">
+
+```bash
+uptime
+nproc                       # core count — the number that gives load its meaning
+lscpu | grep '^CPU(s):'     # same information
+```
+
+```bash
+checkflag 51162b643687 'LPIC{load_vs_nproc}'
+```
+
+Load `7.82` on 4 cores = ~2× oversubscribed. On 16 cores = about half idle.
+
+**Also read the trend:** `7.82, 7.44, 6.91` runs 1-min, 5-min, 15-min — load is **climbing**.
+The reverse (`0.42, 1.15, 2.03`) means the spike already passed.
+
+```bash
+checkflag 51162b643687 'LPIC{load_vs_nproc}'
+```
+</Accordion>
+</Accordions>
+
+---
+
+## Final task — the incident report
+
+No flag. Do it anyway; this is the actual job.
+
+Using only commands from this CTF, write a short report answering:
+
+1. Which processes did you find that shouldn't be running, and how did you prove it?
+2. How much disk space was recoverable, and what was holding it?
+3. If this were a real server, which finding would you escalate first, and why?
+4. Which single command would you run first next time — and what would it have told you?
+
+---
+
+## Cleanup
+
+```bash
+./ctf-setup.sh cleanup
+```
+
+Verify nothing is left behind:
+
+```bash
+pgrep -af lpic-ctf || echo "clean"
+ls ~/lpic-ctf 2>/dev/null || echo "directory removed"
+```
+
+---
+
+## Flag reference
+
+| # | Challenge | Hash | Skill |
+| - | --------- | ---- | ----- |
+| 1 | The impostor | `ceb0d1b38a1c` | `pgrep -af` |
+| 2 | Unmasking the impostor | `6e9642b1296e` | `/proc/PID/exe` |
+| 3 | The polite process | `5c058b6627f9` | `ps -eo ni --sort` |
+| 4 | The undead | `b42d302dbf38` | zombies, reaping |
+| 5 | The vanishing disk space | `435df6d0b764` | `lsof \| grep deleted` |
+| 6 | Who's on my port? | `7016275e8e65` | `ss -lntp`, `lsof -i` |
+| 7 | The memory panic | `9a86af99d33c` | `free -h` available |
+| 8 | Proving it's swapping | `a03b3ff06201` | `vmstat` si/so |
+| 9 | Full but empty | `01fe30138ec1` | `df -i` inodes |
+| 10 | The final verdict | `51162b643687` | load vs `nproc` |

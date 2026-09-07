@@ -1,0 +1,153 @@
+---
+title: Roadmap
+description: The LPIC-1 learning path — 16 core teaching sessions, supplemental process labs, and a 12-week exam plan mapped to current lesson status.
+icon: Map
+---
+
+# LPIC-1 Roadmap
+
+Two ways to use this page:
+
+- **Teaching track** — 16 core sessions plus two supplemental process labs, each with a goal, reading, lab, and homework.
+- **Exam track** — a countdown plan for solo study toward `101-500` and `102-500`.
+
+Both point at the same lesson pages. Status column tells you what already exists here.
+
+| Status | Meaning |
+| ------ | ------- |
+| ✅ | Full lesson written |
+| 🟡 | Stub only — objectives listed, needs content |
+| ⬜ | Not written yet |
+
+---
+
+## Exam facts (know these before planning)
+
+| | 101-500 | 102-500 |
+| --- | --- | --- |
+| Questions | 60 | 60 |
+| Time | 90 min | 90 min |
+| Pass score | 500 / 800 | 500 / 800 |
+| Topics | 101–104 | 105–110 |
+| Validity | 5 years | 5 years |
+
+You must pass **both** exams to be LPIC-1 certified. They can be taken in any order and months apart.
+
+<Callout type="warn">
+Weight numbers below are LPI's official objective weights. They tell you where the questions actually are — `103` alone is 26 points of exam 101. Study time should follow weight, not interest.
+</Callout>
+
+---
+
+## Teaching track — 16 sessions
+
+Each session is ~2 hours: 45 min concept, 45 min lab, 30 min review of previous homework.
+
+### Phase 0 — Before the exam material (Sessions 1–3)
+
+These aren't on the exam. They're the tools students need to *survive* every later session.
+
+| # | Session | Page | Lab / Homework | Status |
+| - | ------- | ---- | -------------- | ------ |
+| 1 | What Linux is — kernel, shell, user space, FHS | [Quiz — Linux Fundamentals](/lpic1/howLinuxWorks) + [How Linux Works (book)](/lpic1/download) | Install a VM (Debian + Rocky). Homework: read book ch. 1–2 | ✅ |
+| 2 | Survive in an editor — Vim modes & motions | [Vim & Vim Motions](/lpic1/vim) | Edit `/etc/hosts` in Vim without panicking. Homework: 10 min/day vimtutor | ✅ |
+| 3 | Get onto a remote box — SSH, keys, shells | [SSH, Terminals & Shells](/lpic1/base) → [SSH Quiz](/lpic1/quiz) | Key-based login between two VMs, disable password auth | ✅ |
+
+<Callout type="info">
+Session 3 is where you hand out the AI-assistant rules: [Using AI as a Linux Assistant](/lpic1/linux-ai). Set the expectation early — AI writes the flag, the student explains the flag.
+</Callout>
+
+### Phase 1 — Exam 101 (Sessions 4–9)
+
+| # | Session | Objective | Page | Lab / Homework | Status |
+| - | ------- | --------- | ---- | -------------- | ------ |
+| 4 | Hardware, boot, GRUB2, systemd targets | 101 *(w. 9)* | [System Architecture](/lpic1/system-architecture) | Break GRUB in a VM, recover it from the boot menu | ✅ |
+| 5 | Disk layout, bootloader install, shared libs | 102.1–102.3 *(w. 6)* | Not written | Partition a second disk: `/`, `/home`, swap. `ldd` a binary | ⬜ |
+| 6 | Package management — dpkg/apt & rpm/dnf | 102.4–102.6 *(w. 8)* | [Package Management](/lpic1/package-management) | Install, hold, downgrade, and remove a package on both distros | ✅ |
+| 7 | Command line + text filters | 103.1–103.2 *(w. 8)* | [Text Processing](/lpic1/text) | [Lab: File Search & Text Processing](/lpic1/text2) | ✅ |
+| 8 | Streams, pipes, redirects, process management | 103.3–103.6 *(w. 12)* | [Streams, Pipes, Redirects & Processes](/lpic1/ai-linux) | Build a one-liner report from `/var/log`. Kill/renice a runaway process | ✅ |
+| 8b | Process internals & system monitoring | 103.5 *(w. 12)* | [Processes & System Monitoring](/lpic1/processes) · [book notes](/lpic1/book-processes) | [8 lab challenges](/lpic1/processes#hands-on-lab) — make a zombie, find it, reap it. Diagnose a "slow server" | ✅ |
+| 8c | **Assessment:** processes CTF | 103.5 | [CTF — Processes & Monitoring](/lpic1/ctf-processes) | 10 flag challenges on a seeded VM + written incident report | ✅ |
+| 9 | Filesystems, permissions, links, FHS | 104 *(w. 15)* | [Filesystems & Permissions](/lpic1/filesystems-permissions) | `mkfs` + `fstab` a new partition; SUID/SGID/sticky bit exercise | ✅ |
+
+**Milestone:** after session 9, students sit a full 60-question mock for 101-500.
+
+### Phase 2 — Exam 102 (Sessions 10–16)
+
+| # | Session | Objective | Page | Lab / Homework | Status |
+| - | ------- | --------- | ---- | -------------- | ------ |
+| 10 | Shell environment, profiles, aliases, functions | 105.1 *(w. 4)* | Not written | Write a `.bashrc` that survives a new user account | ⬜ |
+| 11 | Bash scripting — conditionals, loops, exit codes | 105.2 *(w. 4)* | [Shell Scripting](/lpic1/shell-scripting) | Script: back up `/etc` and report the exit status | ✅ |
+| 12 | SQL basics (`SELECT`, `WHERE`, `JOIN`, `GROUP BY`) | 105.3 *(w. 2)* | Not written | Query a SQLite sample DB | ⬜ |
+| 13 | X11, display managers, accessibility | 106 *(w. 6)* | Not written | Start a bare X session; enable sticky keys | ⬜ |
+| 14 | Users, groups, cron/at, localization & time | 107 *(w. 11)* | Not written | Create users with skel + expiry; schedule a cleanup cron | ⬜ |
+| 15 | Time sync, logging (`journalctl`, rsyslog), MTA | 108 *(w. 11)* | Not written | Ship logs to a second VM over rsyslog | ⬜ |
+| 16 | Networking + security hardening | 109 *(w. 14)* · 110 *(w. 12)* | Not written | Static IP + routing; then `sudo` rules, `chage`, SSH hardening | ⬜ |
+
+**Milestone:** after session 16, full 60-question mock for 102-500.
+
+---
+
+## Exam track — self study
+
+Assumes ~10 h/week. Halve the calendar if you're full-time.
+
+### 101-500 — 6 weeks
+
+| Week | Focus | Weight | Pages |
+| ---- | ----- | ------ | ----- |
+| 1 | Tooling: Vim, SSH, shell basics | — | [Vim](/lpic1/vim) · [SSH](/lpic1/base) |
+| 2 | Topic 101 — hardware, boot, GRUB2, targets | 9 | [System Architecture](/lpic1/system-architecture) |
+| 3 | Topic 102 — disk layout, bootloader, packages | 14 | [Package Management](/lpic1/package-management) *(partial)* |
+| 4 | Topic 103 — commands, filters, regex | 13 | [Text Processing](/lpic1/text) · [Lab](/lpic1/text2) |
+| 5 | Topic 103 — streams, pipes, processes, monitoring | 13 | [Streams & Processes](/lpic1/ai-linux) · [Processes & Monitoring](/lpic1/processes) |
+| 6 | Topic 104 — filesystems, permissions + **full mock** | 15 | [Filesystems & Permissions](/lpic1/filesystems-permissions) |
+
+### 102-500 — 6 weeks
+
+| Week | Focus | Weight | Pages |
+| ---- | ----- | ------ | ----- |
+| 7 | Topic 105 — shell customization + scripting | 8 | [Shell Scripting](/lpic1/shell-scripting) *(partial)* |
+| 8 | Topic 105.3 SQL + Topic 106 X11/desktops | 8 | Not written |
+| 9 | Topic 107 — users, groups, cron, locale | 11 | Not written |
+| 10 | Topic 108 — time, logging, MTA, printing | 11 | Not written |
+| 11 | Topic 109 — networking & troubleshooting | 14 | Not written |
+| 12 | Topic 110 — security + **full mock** | 12 | Not written |
+
+### Last 7 days before either exam
+
+1. Re-run every quiz on this site until you score 100%, not 70%.
+2. Rewrite the cheat-sheets from memory on blank paper — recall, not re-reading.
+3. Do one timed 60-question mock at the same hour of day as your real exam slot.
+4. Review only what you got wrong. Do not start new topics.
+
+---
+
+## Study rules that actually matter
+
+<Callout type="warn">
+**Type every command.** LPIC-1 asks you to *fill in* commands, not only pick them from a list. Reading a cheat-sheet does not build that recall.
+</Callout>
+
+- **Two distros, always.** Every lab runs on Debian-family *and* RHEL-family. The exam tests `apt` and `dnf`, `/etc/network/interfaces` and NetworkManager.
+- **Break things on purpose.** Corrupt an `fstab`, delete a GRUB entry, lock yourself out of SSH — then recover. That's what the troubleshooting questions are.
+- **`man` before Google.** The exam room has no browser. Practice `man -k`, `apropos`, `/usr/share/doc`.
+- **AI is a tutor, not an answer key.** Use it to explain a flag you already ran — see [Using AI as a Linux Assistant](/lpic1/linux-ai).
+
+---
+
+## Content gaps — what's still missing here
+
+Tracked openly so students know what to source elsewhere for now.
+
+| Gap | Needed for | Priority |
+| --- | ---------- | -------- |
+| Networking lesson (`ip`, routing, `ss`, DNS) | 109, weight 14 | High |
+| Security administration, host hardening, encryption | 110, weight 12 | High |
+| Users, groups, cron/at lesson | 107, weight 11 | High |
+| Disk layout, bootloader, and shared libraries | 102.1–102.3 | High |
+| Time, logging, MTA, and printing | 108, weight 11 | Medium |
+| Mock exams (60 q, timed) for 101 and 102 | Both milestones | Medium |
+| CTF labs for text processing and Bash scripting | 103.2, 105.2 | Medium |
+| X11, desktops, and accessibility | 106, weight 6 | Low |
+| SQL basics | 105.3, weight 2 | Low |

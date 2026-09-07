@@ -1,0 +1,27 @@
+{
+  "title": "LPIC-1",
+  "pages": [
+    "index",
+    "roadmap",
+    "---Foundations---",
+    "howLinuxWorks",
+    "vim",
+    "base",
+    "linux-ai",
+    "---Exam 101---",
+    "system-architecture",
+    "package-management",
+    "text",
+    "text2",
+    "ai-linux",
+    "processes",
+    "book-processes",
+    "ctf-processes",
+    "filesystems-permissions",
+    "---Exam 102---",
+    "shell-scripting",
+    "---Practice & Resources---",
+    "quiz",
+    "download"
+  ]
+}

@@ -1,0 +1,256 @@
+---
+title: "Book Notes — Processes (How Linux Works)"
+description: Point-form notes on processes from How Linux Works, 2nd Edition — sections 1.3.1 and 2.16 — covering context switching, ps, signals, job control, and background processes, plus the book-specific quirks worth flagging.
+icon: BookOpen
+---
+
+# Book Notes — Processes
+
+Condensed notes from *How Linux Works: What Every Superuser Should Know*, 2nd Edition
+(Brian Ward, No Starch Press) — the process material in the book's opening chapters.
+
+**Sections covered:** `1.3.1` Process Management · `2.16` Listing and Manipulating Processes
+(`2.16.1` Command Options, `2.16.2` Killing Processes, `2.16.3` Job Control, `2.16.4` Background Processes)
+
+<Callout type="info">
+These are **reading notes**, not a lesson. For the full teaching version see
+[Streams, Pipes, Redirects & Process Management](/lpic1/ai-linux) and
+[Processes & System Monitoring](/lpic1/processes).
+</Callout>
+
+---
+
+## 1.3.1 Process Management
+
+- A **process is a running program**. Every process has a numeric **PID**.
+- Process management = starting, pausing, resuming, terminating processes.
+- On a **one-core CPU**, only **one** process actually uses the CPU at any given instant. "Simultaneous" is an illusion.
+- Each process runs for a small fraction of a second, then pauses and yields.
+- **Context switch** — the act of one process giving up control of the CPU to another.
+- **Time slice** — the piece of time given to a process. Small enough that humans can't perceive the switching; the result is **multitasking**.
+- The **kernel is responsible for context switching**.
+
+### The 7 steps of a context switch
+
+The book lists these explicitly. Worth memorizing in order:
+
+1. CPU **interrupts** the current process based on an internal timer, switches into **kernel mode**, hands control to the kernel.
+2. Kernel **records the current state** of CPU and memory (needed to resume the interrupted process later).
+3. Kernel performs any tasks that came up during the preceding time slice (e.g. collecting I/O data).
+4. Kernel **chooses** the next process from the list of those ready to run.
+5. Kernel **prepares memory** for the new process, then prepares the CPU.
+6. Kernel tells the CPU **how long** the new time slice lasts.
+7. Kernel switches CPU into **user mode** and hands control to the process.
+
+<Callout type="info">
+**Key takeaway the book emphasizes:** the context switch answers *when the kernel runs* — the kernel
+runs **between process time slices**, during a context switch.
+</Callout>
+
+- **Multi-CPU nuance:** the kernel doesn't *need* to give up its current CPU to let a process run on a different one — but it typically does anyway to maximize usage of all CPUs (and "may use certain tricks to grab a little more CPU time for itself").
+
+---
+
+## 2.16 Listing and Manipulating Processes
+
+Run `ps` for a quick listing:
+
+```bash
+$ ps
+  PID TTY STAT TIME COMMAND
+  520  p0   S   0:00 -bash
+  545   ?   S   3:59 /usr/X11R6/bin/ctwm -W
+  548   ?   S   0:10 xclock -geometry -0-0
+ 2159  pd  SW   0:00 /usr/bin/vi lib/addresses
+31956  p3   R   0:00 ps
+```
+
+### The five fields
+
+| Field | Meaning |
+| ----- | ------- |
+| **PID** | The process ID |
+| **TTY** | The terminal device where the process is running |
+| **STAT** | Process status — what it's doing and **where its memory resides**. `S` = sleeping, `R` = running. See `ps(1)` for all symbols |
+| **TIME** | CPU time in minutes/seconds — total time spent **running instructions on the processor** |
+| **COMMAND** | The command — but note the warning below |
+
+<Callout type="warn">
+**Book-specific gotcha:** COMMAND "might seem obvious, but be aware that a process **can change this
+field from its original value**." A process can misrepresent its own name in `ps` output — don't
+treat it as trustworthy identification.
+</Callout>
+
+<Callout type="info">
+**TIME is not wall-clock age.** It's accumulated CPU time. A process open for 3 days that did
+nothing shows a tiny TIME.
+</Callout>
+
+---
+
+### 2.16.1 Command Options
+
+- `ps` has many options, in **three different, incompatible styles**: **Unix**, **BSD**, and **GNU**.
+- The book notes many people find **BSD style most comfortable** ("perhaps because it involves less typing") and **uses BSD style throughout**.
+
+| Option | Effect |
+| ------ | ------ |
+| `ps x` | Show all of **your** running processes |
+| `ps ax` | Show **all** processes on the system, not just yours |
+| `ps u` | Include more **detailed** information |
+| `ps w` | Show **full** command names, not just what fits on one line |
+
+- Options combine: `ps aux`, `ps auxw`.
+- Inspect a specific process by adding its PID: `ps u 1234`.
+
+```bash
+ps u $$      # Inspect the current shell — $$ evaluates to the shell's own PID
+```
+
+<Callout type="info">
+The book **defers `top` and `lsof` to Chapter 8**, but points out they're useful for locating
+processes even outside system-maintenance work.
+</Callout>
+
+---
+
+### 2.16.2 Killing Processes
+
+- Terminate a process by **sending it a signal** with `kill`.
+- **A signal is a message to a process from the kernel.** When you run `kill`, you are *asking the kernel* to send a signal to another process — you are not acting on the process directly.
+
+```bash
+$ kill pid            # Default signal: TERM (terminate)
+$ kill -STOP pid      # Freeze the process instead of terminating it
+$ kill -CONT pid      # Continue running it again
+```
+
+- A **stopped** process is **still in memory**, ready to pick up where it left off.
+
+| Signal | Effect per the book |
+| ------ | ------------------- |
+| `TERM` | Default. Terminate |
+| `STOP` | Freeze — stays in memory, resumable |
+| `CONT` | Continue a stopped process |
+| `INT` | Interrupt — what CTRL-C sends |
+| `KILL` | "The most brutal way." OS terminates the process and **forcibly removes it from memory** |
+
+<Callout type="info">
+**NOTE from the book:** using CTRL-C to terminate a process running in the current terminal is the
+same as using `kill` to send the **INT** (interrupt) signal.
+</Callout>
+
+- Other signals **give the process a chance to clean up after itself** — `KILL` does not. **Use as a last resort.**
+- Numbers vs names: `kill -9` is the same as `kill -KILL`. The **kernel uses numbers** to denote signals; names are the human-friendly form.
+
+<Callout type="warn">
+Book's direct warning: "You should not kill processes indiscriminately, especially if you don't know
+what they're doing. **You may be shooting yourself in the foot.**"
+</Callout>
+
+---
+
+### 2.16.3 Job Control
+
+- Shells support **job control** — sending `TSTP` (similar to `STOP`) and `CONT` signals via keystrokes and commands.
+- CTRL-Z sends **TSTP**; restart with `fg` (foreground) or `bg` (background).
+
+```bash
+jobs      # See if you've accidentally suspended processes on this terminal
+```
+
+<Callout type="warn">
+**The book's contrarian take — worth flagging:** job control "is **not necessary** and can be
+confusing for beginners." Users commonly press CTRL-Z instead of CTRL-C, forget what they were
+running, and accumulate numerous suspended processes.
+
+The book's recommended alternatives: run each program in a **separate terminal window**, put
+noninteractive processes in the **background**, or **learn `screen`**.
+</Callout>
+
+<Callout type="info">
+This is a book opinion, not an exam position. LPIC-1 **does** test `jobs`, `fg`, `bg`, and CTRL-Z —
+know them regardless.
+</Callout>
+
+---
+
+### 2.16.4 Background Processes
+
+- Normally the shell prompt doesn't return until the program finishes.
+- Detach with **`&`** to get the prompt back immediately:
+
+```bash
+$ gunzip file.gz &
+```
+
+- The shell prints the **PID** of the new background process.
+- The process **continues running after you log out** — handy for long number-crunching jobs.
+- Depending on setup, the shell **might notify you** when it completes.
+
+#### "The dark side" of background processes
+
+The book flags three real hazards:
+
+1. Background process **expects standard input** (or worse, reads directly from the terminal) → it can **freeze** (use `fg` to bring it back) or **terminate**.
+2. Background process **writes to stdout/stderr** → output appears in your terminal "with no regard for anything else running there" — unexpected output while you work on something else.
+3. **Fix:** redirect its output (and possibly input). The book cross-references `2.14 Shell Input and Output`.
+
+#### Redrawing a mangled terminal
+
+| Keys | Effect |
+| ---- | ------ |
+| **CTRL-L** | Redraw the entire screen (bash + most full-screen interactive programs) |
+| **CTRL-R** | Usually redraws the current line *when a program is reading stdin* |
+
+<Callout type="warn">
+**Gotcha the book calls out:** "pressing the wrong sequence at the wrong time can leave you in an
+even worse situation than before." Specifically, **CTRL-R at the bash prompt** puts you in
+**reverse-isearch mode** — press **ESC** to exit.
+</Callout>
+
+---
+
+## Special things to remember from these pages
+
+The items most likely to surprise you or show up as a trick question:
+
+| # | Point |
+| - | ----- |
+| 1 | The **COMMAND field in `ps` can be changed by the process itself** — not trustworthy |
+| 2 | **TIME = CPU time consumed**, not how long the process has existed |
+| 3 | **STAT tells you where the process's memory resides**, not just its run state |
+| 4 | The kernel runs **between time slices**, during context switches — that's the answer to "when does the kernel run?" |
+| 5 | `kill` doesn't kill — it **asks the kernel to deliver a signal** |
+| 6 | **STOP keeps the process in memory**; only KILL forcibly removes it |
+| 7 | **CTRL-C = INT signal**, exactly equivalent to `kill -INT` |
+| 8 | `kill -9` == `kill -KILL`; numbers are the kernel's native form |
+| 9 | Three incompatible `ps` option styles: **Unix, BSD, GNU**. This book uses **BSD** |
+| 10 | `ps u $$` — `$$` is the shell variable holding the current shell's PID |
+| 11 | Background jobs **survive logout** |
+| 12 | **CTRL-R at a bash prompt** = reverse-isearch, not a redraw. ESC to escape |
+| 13 | The book **defers `top` and `lsof` to Chapter 8** — they are not in this section |
+
+---
+
+## Where the book differs from LPIC-1 emphasis
+
+| Topic | Book's treatment | What the exam wants |
+| ----- | ---------------- | ------------------- |
+| `ps` styles | Picks BSD, uses it throughout | Know **both** `ps aux` (BSD) and `ps -ef` (UNIX) |
+| Job control | Calls it unnecessary, suggests `screen` instead | Fully testable: `jobs`, `fg %n`, `bg %n`, CTRL-Z |
+| `top` / `lsof` | Deferred to Chapter 8 | Testable in topic 103.5 — see [Processes & Monitoring](/lpic1/processes) |
+| `nice` / `renice` | Not in this section | Objective **103.6** — see [Streams & Processes](/lpic1/ai-linux) |
+| Zombies / orphans | Not in this section | Commonly asked — see [Processes & Monitoring](/lpic1/processes) |
+
+---
+
+## Reading checklist
+
+- [ ] Can you explain a context switch in your own words, in order?
+- [ ] Can you name the 5 fields of default `ps` output and what each means?
+- [ ] Can you state why the COMMAND field is untrustworthy?
+- [ ] Do you know the difference between STOP, TERM, INT, and KILL?
+- [ ] Can you explain why `kill -9` should be a last resort?
+- [ ] Do you know what `$$` expands to?
+- [ ] Can you list the three hazards of background processes and the fix?

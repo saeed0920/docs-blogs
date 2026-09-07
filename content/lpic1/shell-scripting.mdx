@@ -1,0 +1,290 @@
+---
+title: Shell Scripting
+description: Write small Bash scripts with variables, arguments, tests, conditions, loops, functions, and safe exit handling.
+---
+
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+
+# Shell Scripting
+
+A shell script stores commands in a file so the same task can run reliably again.
+
+## Your first script
+
+Create `hello.sh`:
+
+```bash
+#!/usr/bin/env bash
+
+echo "Hello, $USER"
+```
+
+Make it executable and run it:
+
+```bash
+chmod +x hello.sh
+./hello.sh
+```
+
+The **shebang** selects the interpreter. `/usr/bin/env bash` finds Bash through the current environment.
+
+## Variables and quoting
+
+```bash
+name="Saeed"
+echo "$name"
+echo "Hello, $name"
+echo 'This prints $name literally'
+```
+
+Do not add spaces around `=` in assignments.
+
+Quote variable expansions unless you intentionally need word splitting or glob expansion:
+
+```bash
+file="monthly report.txt"
+cp "$file" /tmp/
+```
+
+## Command substitution
+
+Capture command output with `$(...)`:
+
+```bash
+kernel=$(uname -r)
+today=$(date +%F)
+echo "Kernel: $kernel"
+echo "Date: $today"
+```
+
+## Script arguments
+
+| Expansion | Meaning |
+| --- | --- |
+| `$0` | Script name |
+| `$1`…`$9` | Positional arguments |
+| `$#` | Number of arguments |
+| `"$@"` | Every argument, preserving boundaries |
+| `$?` | Exit status of previous command |
+| `$$` | Current shell PID |
+
+```bash
+#!/usr/bin/env bash
+
+echo "Script: $0"
+echo "First argument: ${1:-not provided}"
+echo "Argument count: $#"
+```
+
+Run it:
+
+```bash
+./args.sh one two three
+```
+
+## Exit status
+
+Commands return `0` for success and a non-zero value for failure.
+
+```bash
+mkdir /tmp/demo
+echo "$?"
+
+if mkdir /tmp/demo; then
+  echo "Directory created"
+else
+  echo "Could not create directory" >&2
+  exit 1
+fi
+```
+
+`&&` runs the next command after success. `||` runs it after failure.
+
+```bash
+mkdir -p backup && echo "Ready"
+grep -q root /etc/passwd || echo "root not found"
+```
+
+## Tests
+
+Use `[[ ... ]]` in Bash scripts:
+
+```bash
+[[ -f "$file" ]]       # regular file exists
+[[ -d "$dir" ]]        # directory exists
+[[ -r "$file" ]]       # readable
+[[ -w "$file" ]]       # writable
+[[ -x "$file" ]]       # executable
+[[ -n "$name" ]]       # string is not empty
+[[ "$a" == "$b" ]]    # strings are equal
+[[ "$count" -gt 10 ]]  # numeric comparison
+```
+
+Common numeric operators: `-eq`, `-ne`, `-lt`, `-le`, `-gt`, and `-ge`.
+
+## Conditions
+
+```bash
+#!/usr/bin/env bash
+
+if [[ $# -eq 0 ]]; then
+  echo "Usage: $0 FILE" >&2
+  exit 2
+elif [[ ! -f "$1" ]]; then
+  echo "File not found: $1" >&2
+  exit 1
+else
+  echo "$1 has $(wc -l < "$1") lines"
+fi
+```
+
+Use `case` when matching one value against several patterns:
+
+```bash
+case "${1:-}" in
+  start) echo "Starting" ;;
+  stop)  echo "Stopping" ;;
+  *)     echo "Usage: $0 {start|stop}" >&2; exit 2 ;;
+esac
+```
+
+## Loops
+
+A `for` loop handles a list:
+
+```bash
+for file in *.log; do
+  [[ -e "$file" ]] || continue
+  echo "$file: $(wc -l < "$file") lines"
+done
+```
+
+A `while` loop continues while a condition succeeds:
+
+```bash
+count=1
+while [[ $count -le 3 ]]; do
+  echo "$count"
+  ((count++))
+done
+```
+
+Read a file safely line by line:
+
+```bash
+while IFS= read -r line; do
+  echo "$line"
+done < input.txt
+```
+
+## Functions
+
+Functions group commands and can return an exit status:
+
+```bash
+log() {
+  printf '%s %s\n' "$(date +%T)" "$*"
+}
+
+require_file() {
+  [[ -f "$1" ]] || {
+    echo "Missing file: $1" >&2
+    return 1
+  }
+}
+
+log "Starting"
+require_file /etc/passwd || exit 1
+```
+
+`return` sets a function status. Use `echo` or `printf` when a function must output text.
+
+## Safer scripts
+
+```bash
+set -u                    # fail on unset variables
+```
+
+Use `set -e` carefully: its behavior has exceptions inside conditions and command lists. Explicit error checks are easier to understand in beginner scripts.
+
+Create temporary files safely:
+
+```bash
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+```
+
+Check syntax without running the script:
+
+```bash
+bash -n script.sh
+```
+
+Trace commands during debugging:
+
+```bash
+bash -x script.sh
+```
+
+## Hands-on lab: backup `/etc`
+
+Create `backup-etc.sh`:
+
+```bash
+#!/usr/bin/env bash
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 DESTINATION" >&2
+  exit 2
+fi
+
+destination=$1
+mkdir -p "$destination" || exit 1
+
+archive="$destination/etc-$(date +%F-%H%M%S).tar.gz"
+
+if tar -czf "$archive" /etc 2>/dev/null; then
+  echo "Backup created: $archive"
+else
+  echo "Backup failed" >&2
+  exit 1
+fi
+```
+
+Test it:
+
+```bash
+chmod +x backup-etc.sh
+bash -n backup-etc.sh
+./backup-etc.sh /tmp/backups
+ls -lh /tmp/backups
+```
+
+## Quick reference
+
+| Need | Syntax |
+| --- | --- |
+| Variable | `name="value"` |
+| Command output | `value=$(command)` |
+| Condition | `if [[ test ]]; then ... fi` |
+| Multiple choices | `case "$value" in ... esac` |
+| List loop | `for item in list; do ... done` |
+| Conditional loop | `while [[ test ]]; do ... done` |
+| Function | `name() { commands; }` |
+| Success/failure | `exit 0`, `exit 1` |
+| Syntax check | `bash -n script.sh` |
+| Debug trace | `bash -x script.sh` |
+
+## Review questions
+
+<Accordions>
+  <Accordion title="Why should most variable expansions be quoted?">
+    Quoting prevents spaces and wildcard characters inside values from becoming separate arguments or unexpected filename matches.
+  </Accordion>
+  <Accordion title="What is the difference between $@ and $??">
+    `"$@"` expands to all script arguments while preserving each argument. `$?` contains the previous command's exit status.
+  </Accordion>
+  <Accordion title="Why should a script print errors to standard error?">
+    `>&2` keeps errors separate from normal output, allowing callers to redirect or process each stream independently.
+  </Accordion>
+</Accordions>
