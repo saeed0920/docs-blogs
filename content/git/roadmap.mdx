@@ -1,0 +1,152 @@
+---
+title: Git Workshop Roadmap
+description: Two-day Git workshop roadmap covering fundamentals, collaboration, recovery, and advanced tools.
+---
+
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+# Git Workshop
+
+## Day 1 — Git Fundamentals
+
+### Introduction
+
+* What is Version Control?
+* Git History
+
+### Setup
+
+* Installing and Configuring Git
+* Creating a Repository
+
+### Core Concepts
+
+* Git Architecture and File States
+* `git status`
+* `git add`
+* `git commit`
+
+### History and Tracking
+
+* Viewing History (`git log`, `git show`)
+* Advanced Log Inspection (`git log`, `git show`, `git blame`)
+* Git Tags
+* `.gitignore`
+
+### Branching and Collaboration Basics
+
+* Branches
+* Merging Branches
+* Merge Conflicts and Conflict Resolution
+
+### Temporary Changes and Safe Recovery
+
+* Stashing Changes (`git stash`)
+* Restoring Uncommitted Changes (`git restore`)
+* Recovering Previous Work with `git reflog`
+* Local History vs Shared History Safety
+
+<Callout type="warn">
+Never rewrite shared history unless the team has explicitly agreed. Prefer `git revert` for commits already pushed to a shared branch. Use `git reset` and interactive rebase for local, unpublished history; if a force push is required, prefer `git push --force-with-lease` over `--force`.
+</Callout>
+
+### Practice
+
+* Hands-on Exercises
+
+---
+
+## Day 2 — Collaboration and Advanced Git
+
+### Review
+
+* Review of Day 1
+
+### Remote Repositories
+
+* GitHub and GitLab Overview
+* Remote Repositories
+* `git push`
+* `git fetch`
+* `git pull`
+
+### Team Collaboration
+
+* Pull Requests / Merge Requests
+* Git Flow
+
+### Undoing and Recovering Changes
+
+* Review of `git restore` and `git reflog`
+* Resetting Local Changes (`git reset`)
+* Reverting Shared Commits (`git revert`)
+* Safe Force Pushes (`git push --force-with-lease`)
+
+### Advanced History Manipulation
+
+* Cherry-Picking Commits (`git cherry-pick`)
+* Interactive Rebase (`git rebase -i`)
+* Rebase vs Merge
+
+### Inspection and Debugging
+
+* Git Worktree
+* Git Bisect
+* Git Hooks
+
+### Practice
+
+* Final Practical Project
+
+---
+
+## Optional Topics (If Time Allows)
+
+### Advanced Repository Features
+
+* Git Submodules
+* Git LFS
+* Signed Commits (GPG/SSH)
+
+### Best Practices
+
+* Repository Management Best Practices
+* Monorepo vs Polyrepo
+* Open Source Contribution Workflow
+
+---
+
+## Context
+
+Workshop moves from Git's local data model to safe collaboration and history recovery. Day 1 establishes mental models and daily commands; Day 2 applies them to shared repositories, debugging, and advanced workflows.
+
+Use one repository throughout both days so each exercise builds on earlier commits, branches, conflicts, and remotes.
+
+## Example Workshop Project
+
+Participants work in pairs on a small documentation repository:
+
+1. Create repository and commit an initial README.
+2. Develop separate features on branches.
+3. Create and resolve a merge conflict.
+4. Push branches and review a pull request.
+5. Recover an intentional mistake with `restore`, `revert`, or `reset`.
+6. Find a deliberately introduced bug with `git bisect`.
+
+## Review Questions
+
+<Accordions>
+  <Accordion title="Why teach Git file states before individual commands?">
+    Commands become easier to predict when participants understand working tree, staging area, and repository transitions.
+  </Accordion>
+  <Accordion title="When should a team use revert instead of reset?">
+    Use `git revert` for shared history because it creates a new commit without rewriting commits others may already use.
+  </Accordion>
+  <Accordion title="What should the final project demonstrate?">
+    A complete collaboration flow: branching, commits, remote synchronization, review, conflict resolution, and safe recovery.
+  </Accordion>
+</Accordions>
+
+---
+
+Supporting material, including [Pro Git](https://git-scm.com/book/en/v2) and the [Git Reference Manual](https://git-scm.com/docs), is listed on the [Git Workshop References](./references) page.
