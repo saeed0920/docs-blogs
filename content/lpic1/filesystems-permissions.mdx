@@ -197,6 +197,47 @@ chmod 1777 public-directory
 find / -perm -4000 -type f 2>/dev/null
 ```
 
+## Permissions challenge
+
+Create a safe practice directory:
+
+```bash
+mkdir -p /tmp/permissions-lab/shared
+cd /tmp/permissions-lab
+touch private.txt shared/report.txt script.sh
+```
+
+Without looking at the solution, make these rules true:
+
+1. `private.txt`: owner can read and write; nobody else has access.
+2. `script.sh`: owner can read, write, and execute; everyone else can read and execute.
+3. `shared`: owner and group have full access; others can only enter and read it.
+4. New files inside `shared` inherit its group.
+5. Confirm every result with `ls -ld`.
+
+<Accordions>
+  <Accordion title="Show solution">
+
+```bash
+chmod 600 private.txt
+chmod 755 script.sh
+chmod 2755 shared
+ls -ld private.txt script.sh shared
+```
+
+Expected permission bits:
+
+```text
+-rw------- private.txt
+-rwxr-xr-x script.sh
+drwxr-sr-x shared
+```
+
+The `2` in `2755` enables SGID. New files in `shared` inherit the directory's group.
+
+  </Accordion>
+</Accordions>
+
 ## Hard and symbolic links
 
 ```bash
