@@ -62,7 +62,7 @@ Session 3 is where you hand out the AI-assistant rules: [Using AI as a Linux Ass
 | # | Session | Objective | Page | Lab / Homework | Status |
 | - | ------- | --------- | ---- | -------------- | ------ |
 | 4 | Hardware, boot, GRUB2, systemd targets | 101 *(w. 9)* | [System Architecture](/lpic1/system-architecture) | Break GRUB in a VM, recover it from the boot menu | ✅ |
-| 5 | Disk layout, bootloader install, shared libs | 102.1–102.3 *(w. 6)* | Not written | Partition a second disk: `/`, `/home`, swap. `ldd` a binary | ⬜ |
+| 5 | Disk layout, bootloader install, shared libs | 102.1–102.3 *(w. 6)* | [Shared Libraries](/lpic1/shared-libraries) *(partial)* | Partition a second disk: `/`, `/home`, swap. `ldd` a binary | 🟡 |
 | 6 | Package management — dpkg/apt & rpm/dnf | 102.4–102.6 *(w. 8)* | [Package Management](/lpic1/package-management) | Install, hold, downgrade, and remove a package on both distros | ✅ |
 | 7 | Command line + text filters | 103.1–103.2 *(w. 8)* | [Text Processing](/lpic1/text) | [Lab: File Search & Text Processing](/lpic1/text2) | ✅ |
 | 8 | Streams, pipes, redirects, process management | 103.3–103.6 *(w. 12)* | [Streams, Pipes, Redirects & Processes](/lpic1/ai-linux) | Build a one-liner report from `/var/log`. Kill/renice a runaway process | ✅ |
@@ -76,13 +76,13 @@ Session 3 is where you hand out the AI-assistant rules: [Using AI as a Linux Ass
 
 | # | Session | Objective | Page | Lab / Homework | Status |
 | - | ------- | --------- | ---- | -------------- | ------ |
-| 10 | Shell environment, profiles, aliases, functions | 105.1 *(w. 4)* | Not written | Write a `.bashrc` that survives a new user account | ⬜ |
+| 10 | Shell environment, profiles, aliases, functions | 105.1 *(w. 4)* | [Shell Environment](/lpic1/shell-environment) | Write a `.bashrc` that survives a new user account | ✅ |
 | 11 | Bash scripting — conditionals, loops, exit codes | 105.2 *(w. 4)* | [Shell Scripting](/lpic1/shell-scripting) | Script: back up `/etc` and report the exit status | ✅ |
 | 12 | SQL basics (`SELECT`, `WHERE`, `JOIN`, `GROUP BY`) | 105.3 *(w. 2)* | Not written | Query a SQLite sample DB | ⬜ |
 | 13 | X11, display managers, accessibility | 106 *(w. 6)* | Not written | Start a bare X session; enable sticky keys | ⬜ |
-| 14 | Users, groups, cron/at, localization & time | 107 *(w. 11)* | Not written | Create users with skel + expiry; schedule a cleanup cron | ⬜ |
+| 14 | Users, groups, cron/at, localization & time | 107 *(w. 11)* | [Cron & Job Scheduling](/lpic1/cron-scheduling) *(partial)* | Create users with skel + expiry; schedule a cleanup cron | 🟡 |
 | 15 | Time sync, logging (`journalctl`, rsyslog), MTA | 108 *(w. 11)* | Not written | Ship logs to a second VM over rsyslog | ⬜ |
-| 16 | Networking + security hardening | 109 *(w. 14)* · 110 *(w. 12)* | Not written | Static IP + routing; then `sudo` rules, `chage`, SSH hardening | ⬜ |
+| 16 | Networking + security hardening | 109 *(w. 14)* · 110 *(w. 12)* | [Basic Linux Networking](/lpic1/basic-networking) *(networking only)* | Static IP + routing; then `sudo` rules, `chage`, SSH hardening | 🟡 |
 
 **Milestone:** after session 16, full 60-question mock for 102-500.
 
@@ -98,7 +98,7 @@ Assumes ~10 h/week. Halve the calendar if you're full-time.
 | ---- | ----- | ------ | ----- |
 | 1 | Tooling: Vim, SSH, shell basics | — | [Vim](/lpic1/vim) · [SSH](/lpic1/base) |
 | 2 | Topic 101 — hardware, boot, GRUB2, targets | 9 | [System Architecture](/lpic1/system-architecture) |
-| 3 | Topic 102 — disk layout, bootloader, packages | 14 | [Package Management](/lpic1/package-management) *(partial)* |
+| 3 | Topic 102 — disk layout, bootloader, packages | 14 | [Shared Libraries](/lpic1/shared-libraries) · [Package Management](/lpic1/package-management) *(partial)* |
 | 4 | Topic 103 — commands, filters, regex | 13 | [Text Processing](/lpic1/text) · [Lab](/lpic1/text2) |
 | 5 | Topic 103 — streams, pipes, processes, monitoring | 13 | [Streams & Processes](/lpic1/ai-linux) · [Processes & Monitoring](/lpic1/processes) |
 | 6 | Topic 104 — filesystems, permissions + **full mock** | 15 | [Filesystems & Permissions](/lpic1/filesystems-permissions) |
@@ -107,11 +107,11 @@ Assumes ~10 h/week. Halve the calendar if you're full-time.
 
 | Week | Focus | Weight | Pages |
 | ---- | ----- | ------ | ----- |
-| 7 | Topic 105 — shell customization + scripting | 8 | [Shell Scripting](/lpic1/shell-scripting) *(partial)* |
+| 7 | Topic 105 — shell customization + scripting | 8 | [Shell Environment](/lpic1/shell-environment) · [Shell Scripting](/lpic1/shell-scripting) |
 | 8 | Topic 105.3 SQL + Topic 106 X11/desktops | 8 | Not written |
-| 9 | Topic 107 — users, groups, cron, locale | 11 | Not written |
+| 9 | Topic 107 — users, groups, cron, locale | 11 | [Cron & Job Scheduling](/lpic1/cron-scheduling) *(partial)* |
 | 10 | Topic 108 — time, logging, MTA, printing | 11 | Not written |
-| 11 | Topic 109 — networking & troubleshooting | 14 | Not written |
+| 11 | Topic 109 — networking & troubleshooting | 14 | [Basic Linux Networking](/lpic1/basic-networking) |
 | 12 | Topic 110 — security + **full mock** | 12 | Not written |
 
 ### Last 7 days before either exam
@@ -142,10 +142,9 @@ Tracked openly so students know what to source elsewhere for now.
 
 | Gap | Needed for | Priority |
 | --- | ---------- | -------- |
-| Networking lesson (`ip`, routing, `ss`, DNS) | 109, weight 14 | High |
 | Security administration, host hardening, encryption | 110, weight 12 | High |
-| Users, groups, cron/at lesson | 107, weight 11 | High |
-| Disk layout, bootloader, and shared libraries | 102.1–102.3 | High |
+| Users, groups, localization, and time zones | 107.1, 107.3 | High |
+| Disk layout and bootloader installation | 102.1–102.2 | High |
 | Time, logging, MTA, and printing | 108, weight 11 | Medium |
 | Mock exams (60 q, timed) for 101 and 102 | Both milestones | Medium |
 | CTF labs for text processing and Bash scripting | 103.2, 105.2 | Medium |

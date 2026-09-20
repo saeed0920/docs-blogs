@@ -10,6 +10,7 @@
     "linux-ai",
     "---Exam 101---",
     "system-architecture",
+    "shared-libraries",
     "package-management",
     "text",
     "text2",
@@ -19,7 +20,10 @@
     "ctf-processes",
     "filesystems-permissions",
     "---Exam 102---",
+    "shell-environment",
     "shell-scripting",
+    "cron-scheduling",
+    "basic-networking",
     "---Practice & Resources---",
     "quiz",
     "download"

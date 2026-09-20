@@ -1,0 +1,192 @@
+---
+title: Shared Libraries
+description: Understand how Linux programs find shared libraries using ldd, ldconfig, cache files, and library paths.
+---
+
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+
+# Shared Libraries
+
+A library contains reusable code. Programs can share one library instead of storing the same code in every executable.
+
+## Static and shared libraries
+
+| Type | Typical extension | How it works |
+| --- | --- | --- |
+| Static | `.a` | Copied into program during compilation |
+| Shared | `.so` | Loaded when program starts or while it runs |
+
+Shared libraries make programs smaller and allow one library update to fix many programs.
+
+## Find a program's libraries
+
+```bash
+ldd /bin/ls
+```
+
+Example:
+
+```text
+linux-vdso.so.1
+libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6
+/lib64/ld-linux-x86-64.so.2
+```
+
+The left side is the requested library name. The path after `=>` is the file Linux found.
+
+<Callout type="warn">
+Do not run `ldd` on an untrusted executable. Some implementations may execute code from the inspected file.
+</Callout>
+
+Safer inspection options include:
+
+```bash
+objdump -p ./program | grep NEEDED
+readelf -d ./program | grep NEEDED
+```
+
+## Common library locations
+
+Libraries commonly live in:
+
+```text
+/lib
+/lib64
+/usr/lib
+/usr/lib64
+/usr/local/lib
+```
+
+Architecture-specific directories are also common:
+
+```text
+/lib/x86_64-linux-gnu
+/usr/lib/x86_64-linux-gnu
+```
+
+Find a library:
+
+```bash
+find /lib /usr/lib -name 'libc.so*' 2>/dev/null
+ldconfig -p | grep libc
+```
+
+## Library configuration and cache
+
+The dynamic linker searches built-in paths, configured paths, and a cache.
+
+Important locations:
+
+| Path | Purpose |
+| --- | --- |
+| `/etc/ld.so.conf` | Main library-path configuration |
+| `/etc/ld.so.conf.d/*.conf` | Additional path files |
+| `/etc/ld.so.cache` | Generated lookup cache |
+
+After adding a system library path, refresh the cache:
+
+```bash
+sudo ldconfig
+```
+
+Display cached libraries:
+
+```bash
+ldconfig -p
+```
+
+`ldconfig` also creates or updates links between library names and versions.
+
+## `LD_LIBRARY_PATH`
+
+Use `LD_LIBRARY_PATH` to add a temporary search path for one shell or command:
+
+```bash
+export LD_LIBRARY_PATH=/opt/myapp/lib:$LD_LIBRARY_PATH
+./myapp
+```
+
+Limit it to one command:
+
+```bash
+LD_LIBRARY_PATH=/opt/myapp/lib ./myapp
+```
+
+<Callout type="info">
+Prefer `/etc/ld.so.conf.d/` plus `ldconfig` for system-wide libraries. Use `LD_LIBRARY_PATH` mainly for testing or isolated applications.
+</Callout>
+
+## Troubleshoot a missing library
+
+A common error looks like:
+
+```text
+error while loading shared libraries: libexample.so.1: cannot open shared object file
+```
+
+Check in this order:
+
+```bash
+ldd ./program | grep 'not found'
+find /lib /usr/lib /usr/local/lib -name 'libexample.so*' 2>/dev/null
+ldconfig -p | grep libexample
+cat /etc/ld.so.conf
+ls /etc/ld.so.conf.d/
+```
+
+Then install the package containing the library or add its valid directory to linker configuration. Do not download random `.so` files.
+
+## Small challenge
+
+Choose a trusted command such as `/bin/cp` and find:
+
+1. Every shared library it needs.
+2. Path to its C library.
+3. Whether that library appears in linker cache.
+4. Package owning the library file.
+
+<Accordions>
+  <Accordion title="Show solution">
+
+```bash
+ldd /bin/cp
+libc_path=$(ldd /bin/cp | awk '/libc\.so/ {print $3; exit}')
+printf '%s\n' "$libc_path"
+ldconfig -p | grep 'libc.so.6'
+
+# Debian family
+dpkg -S "$libc_path"
+
+# Red Hat family
+rpm -qf "$libc_path"
+```
+
+Paths and package names differ by distribution.
+
+  </Accordion>
+</Accordions>
+
+## Quick reference
+
+| Task | Command or path |
+| --- | --- |
+| Show required libraries | `ldd PROGRAM` |
+| Safely inspect requirements | `readelf -d PROGRAM` |
+| Show cache | `ldconfig -p` |
+| Refresh cache | `sudo ldconfig` |
+| Configure paths | `/etc/ld.so.conf.d/*.conf` |
+| Temporary path | `LD_LIBRARY_PATH=DIR COMMAND` |
+
+## Review questions
+
+<Accordions>
+  <Accordion title="Why do programs use shared libraries?">
+    Shared libraries reduce duplicated code and allow multiple programs to receive compatible library fixes from one update.
+  </Accordion>
+  <Accordion title="What does ldconfig do?">
+    It scans configured library directories, updates required symbolic links, and rebuilds `/etc/ld.so.cache`.
+  </Accordion>
+  <Accordion title="When should you use LD_LIBRARY_PATH?">
+    Use it for temporary testing or isolated applications. Prefer linker configuration for stable system-wide paths.
+  </Accordion>
+</Accordions>

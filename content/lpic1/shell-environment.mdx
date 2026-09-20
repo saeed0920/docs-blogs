@@ -1,0 +1,250 @@
+---
+title: Shell Environment
+description: Customize Bash with variables, aliases, functions, startup files, history, and command-search paths.
+---
+
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+
+# Shell Environment
+
+The shell environment controls variables, command locations, prompts, aliases, and settings inherited by programs you start.
+
+## Shell variables and environment variables
+
+A shell variable belongs to the current shell:
+
+```bash
+course="LPIC-1"
+echo "$course"
+```
+
+An exported variable is inherited by child processes:
+
+```bash
+export course
+bash -c 'echo "$course"'
+```
+
+Create and export in one command:
+
+```bash
+export EDITOR=vim
+```
+
+Inspect variables:
+
+```bash
+set                         # shell variables and functions
+env                         # exported environment variables
+printenv HOME
+```
+
+Remove a variable:
+
+```bash
+unset course
+```
+
+## Important environment variables
+
+| Variable | Purpose |
+| --- | --- |
+| `HOME` | Current user's home directory |
+| `USER` | Current username |
+| `SHELL` | Login shell path |
+| `PATH` | Directories searched for commands |
+| `PWD` | Current directory |
+| `OLDPWD` | Previous directory |
+| `LANG` | Default locale |
+| `EDITOR` | Preferred text editor |
+| `HISTFILE` | Shell history file |
+| `PS1` | Primary prompt |
+
+```bash
+printenv HOME SHELL LANG
+printf '%s\n' "$PATH"
+```
+
+## How `PATH` works
+
+`PATH` is a colon-separated list searched from left to right:
+
+```bash
+echo "$PATH"
+type -a python
+command -v python
+```
+
+Add a personal command directory:
+
+```bash
+export PATH="$HOME/bin:$PATH"
+```
+
+Keep `$PATH` quoted and preserve its existing value. Avoid adding `.` to `PATH`; it can execute an unexpected program from the current directory.
+
+## Aliases
+
+Aliases shorten interactive commands:
+
+```bash
+alias ll='ls -alF'
+alias grep='grep --color=auto'
+alias
+unalias ll
+```
+
+Aliases are mainly for interactive shells. Use functions or scripts for logic and arguments.
+
+## Shell functions
+
+```bash
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+```
+
+Use it:
+
+```bash
+mkcd /tmp/new-project
+type mkcd
+```
+
+Remove it:
+
+```bash
+unset -f mkcd
+```
+
+## Bash startup files
+
+Different shell types read different files.
+
+| File | Typical use |
+| --- | --- |
+| `/etc/profile` | System-wide login-shell settings |
+| `/etc/profile.d/*.sh` | System-wide modular login settings |
+| `~/.bash_profile` | User login-shell settings |
+| `~/.profile` | Portable user login settings |
+| `~/.bashrc` | Interactive non-login Bash settings |
+| `/etc/bash.bashrc` | Debian-family system-wide interactive settings |
+| `/etc/bashrc` | Red Hat-family system-wide interactive settings |
+| `~/.bash_logout` | Commands run when login Bash exits |
+
+Common pattern for `~/.bash_profile`:
+
+```bash
+if [[ -f ~/.bashrc ]]; then
+  source ~/.bashrc
+fi
+```
+
+Reload a changed file in current shell:
+
+```bash
+source ~/.bashrc
+# same as:
+. ~/.bashrc
+```
+
+<Callout type="info">
+Put aliases, prompt settings, and interactive functions in `~/.bashrc`. Put login-wide exported variables in `~/.profile` or `~/.bash_profile`.
+</Callout>
+
+## Shell options
+
+```bash
+set -o                      # show shell options
+set -o noclobber            # protect files from > overwrite
+set +o noclobber            # disable option
+shopt                       # show Bash-specific options
+shopt -s histappend         # append instead of replace history
+```
+
+With `noclobber`, force an intentional overwrite using `>|`:
+
+```bash
+echo new >| existing.txt
+```
+
+## Command history
+
+```bash
+history
+history 20
+history -c                  # clear current history list
+```
+
+Useful settings:
+
+```bash
+export HISTSIZE=2000
+export HISTFILESIZE=5000
+export HISTCONTROL=ignoreboth
+shopt -s histappend
+```
+
+Do not place passwords or tokens directly in shell commands; they may enter history and process listings.
+
+## Small challenge
+
+Configure your user so every new interactive Bash shell has:
+
+1. `~/bin` at beginning of `PATH`.
+2. `EDITOR` set to `vim`.
+3. Alias `ll` for `ls -alF`.
+4. Function `mkcd` that creates and enters a directory.
+
+<Accordions>
+  <Accordion title="Show solution">
+
+Add to `~/.bashrc`:
+
+```bash
+export PATH="$HOME/bin:$PATH"
+export EDITOR=vim
+alias ll='ls -alF'
+
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+```
+
+Apply and verify:
+
+```bash
+source ~/.bashrc
+command -v vim
+type ll
+type mkcd
+```
+
+  </Accordion>
+</Accordions>
+
+## Quick reference
+
+| Task | Command |
+| --- | --- |
+| Export variable | `export NAME=value` |
+| Remove variable | `unset NAME` |
+| Find command | `command -v NAME` |
+| Show command type | `type NAME` |
+| Create alias | `alias name='command'` |
+| Reload Bash settings | `source ~/.bashrc` |
+| Show shell options | `set -o`, `shopt` |
+
+## Review questions
+
+<Accordions>
+  <Accordion title="What is the difference between a shell variable and an environment variable?">
+    An environment variable is exported and inherited by child processes. An unexported shell variable remains in the current shell.
+  </Accordion>
+  <Accordion title="Why does PATH order matter?">
+    The shell uses the first matching executable. An earlier directory can override a command with the same name in a later directory.
+  </Accordion>
+  <Accordion title="Where should interactive Bash aliases normally go?">
+    Put them in `~/.bashrc`, which interactive Bash shells read.
+  </Accordion>
+</Accordions>

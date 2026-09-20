@@ -140,6 +140,71 @@ sudo tune2fs -l /dev/sdb1      # show ext filesystem settings
 
 Never run repair tools on a mounted read-write filesystem unless documentation explicitly permits it.
 
+## Linux directories
+
+Linux uses one directory tree starting at `/`. The Filesystem Hierarchy Standard (FHS) describes where common files should live.
+
+| Directory | What it contains | Example |
+| --- | --- | --- |
+| `/` | Top of the entire filesystem tree | Every path starts here |
+| `/bin` | Essential user commands | `ls`, `cp`, `cat` |
+| `/sbin` | Essential system-administration commands | `fsck`, `reboot` |
+| `/boot` | Kernel, initramfs, and bootloader files | `/boot/vmlinuz-*` |
+| `/dev` | Device files created by the system | `/dev/sda`, `/dev/null` |
+| `/etc` | System-wide configuration | `/etc/hosts`, `/etc/fstab` |
+| `/home` | Regular users' home directories | `/home/alice` |
+| `/lib`, `/lib64` | Essential shared libraries and kernel modules | `/lib/modules/` |
+| `/media` | Mount points for removable media | USB drives |
+| `/mnt` | Temporary manual mount points | `/mnt/data` |
+| `/opt` | Optional third-party software | `/opt/company-app` |
+| `/proc` | Virtual process and kernel information | `/proc/cpuinfo` |
+| `/root` | Root user's home directory | Not the same as `/` |
+| `/run` | Runtime data created since boot | PID files and sockets |
+| `/srv` | Data served by system services | `/srv/www` |
+| `/sys` | Virtual kernel and device information | `/sys/class/net` |
+| `/tmp` | Short-lived temporary files | Often cleared automatically |
+| `/usr` | Most installed programs, libraries, and shared data | `/usr/bin`, `/usr/share` |
+| `/var` | Data that changes while system runs | Logs, caches, queues |
+
+### Important subdirectories
+
+```text
+/usr/bin      Most user commands
+/usr/sbin     Most administration commands
+/usr/lib      Libraries used by installed programs
+/usr/local    Software installed locally by administrator
+/usr/share    Architecture-independent data and documentation
+
+/var/log      System and service logs
+/var/cache    Reusable application cache
+/var/lib      Persistent application state
+/var/spool    Queued work such as mail and print jobs
+```
+
+<Callout type="info">
+On many modern distributions, `/bin`, `/sbin`, and `/lib` are symbolic links into `/usr`. Their purpose in the filesystem layout remains important for LPIC-1.
+</Callout>
+
+### Explore the hierarchy
+
+```bash
+ls -ld /bin /etc /home /root /tmp /usr /var
+findmnt /
+du -sh /var/log 2>/dev/null
+ls /etc | head
+ls /proc/$$
+```
+
+Remember these simple rules:
+
+- Configuration → `/etc`
+- User files → `/home`
+- Logs and changing service data → `/var`
+- Installed commands and shared data → `/usr`
+- Devices → `/dev`
+- Kernel and process views → `/proc` and `/sys`
+- Temporary files → `/tmp`
+
 ## Permissions
 
 Inspect permissions:

@@ -1,0 +1,277 @@
+---
+title: Basic Linux Networking
+description: Understand addresses, routes, ports, DNS, and the commands used to inspect and troubleshoot Linux networks.
+---
+
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+
+# Basic Linux Networking
+
+A Linux machine needs an IP address, a route, and DNS configuration to communicate with other systems by name.
+
+## The basic path
+
+```text
+Application → Port → IP address → Network interface → Router → Destination
+```
+
+Example:
+
+```text
+Browser → TCP 443 → 93.184.216.34 → enp0s3 → default gateway → web server
+```
+
+## Network interfaces
+
+An interface connects Linux to a network.
+
+```bash
+ip link                    # list interfaces and link state
+ip -br link                # short link summary
+ip address                 # show addresses
+ip -br address             # short address summary
+```
+
+Common interface names:
+
+| Name | Meaning |
+| --- | --- |
+| `lo` | Loopback; this machine itself |
+| `eth0` | Traditional Ethernet name |
+| `enp0s3` | Predictable Ethernet name |
+| `wlan0`, `wlp2s0` | Wireless interface |
+
+Bring an interface up or down temporarily:
+
+```bash
+sudo ip link set enp0s3 up
+sudo ip link set enp0s3 down
+```
+
+## IPv4 addresses and CIDR
+
+Example address:
+
+```text
+192.168.1.25/24
+```
+
+- `192.168.1.25` is the host address.
+- `/24` means the first 24 bits identify the network.
+- A `/24` network commonly uses addresses from `192.168.1.1` to `192.168.1.254` for hosts.
+
+Private IPv4 ranges:
+
+| Range | CIDR |
+| --- | --- |
+| `10.0.0.0` – `10.255.255.255` | `10.0.0.0/8` |
+| `172.16.0.0` – `172.31.255.255` | `172.16.0.0/12` |
+| `192.168.0.0` – `192.168.255.255` | `192.168.0.0/16` |
+
+Loopback addresses are `127.0.0.0/8`; `127.0.0.1` is normally called `localhost`.
+
+## IPv6 basics
+
+IPv6 addresses are longer and written in hexadecimal:
+
+```text
+2001:db8::20/64
+```
+
+Useful IPv6 addresses:
+
+| Address | Meaning |
+| --- | --- |
+| `::1` | Loopback |
+| `fe80::/10` | Link-local |
+| `2000::/3` | Global unicast range |
+
+Use `ip -6 address` and `ip -6 route` to inspect IPv6 configuration.
+
+## Routes and gateways
+
+A route tells Linux where to send packets.
+
+```bash
+ip route
+```
+
+Example:
+
+```text
+default via 192.168.1.1 dev enp0s3
+192.168.1.0/24 dev enp0s3 proto kernel src 192.168.1.25
+```
+
+- Local-network traffic uses `enp0s3` directly.
+- Everything else uses default gateway `192.168.1.1`.
+
+Temporary configuration:
+
+```bash
+sudo ip address add 192.168.1.25/24 dev enp0s3
+sudo ip route add default via 192.168.1.1
+```
+
+These changes disappear after reboot. Persistent configuration depends on distribution and network manager.
+
+## NetworkManager
+
+Many distributions use NetworkManager:
+
+```bash
+nmcli device status
+nmcli connection show
+nmcli connection show --active
+```
+
+Create a simple static connection:
+
+```bash
+sudo nmcli connection add \
+  type ethernet \
+  ifname enp0s3 \
+  con-name static-lab \
+  ipv4.method manual \
+  ipv4.addresses 192.168.1.25/24 \
+  ipv4.gateway 192.168.1.1 \
+  ipv4.dns 1.1.1.1
+
+sudo nmcli connection up static-lab
+```
+
+<Callout type="warn">
+Do not replace remote-server network settings over SSH unless you have console access. One wrong address or route can disconnect you.
+</Callout>
+
+## Ports and protocols
+
+IP finds the machine. A port identifies a service on that machine.
+
+| Service | Port | Transport |
+| --- | ---: | --- |
+| SSH | 22 | TCP |
+| DNS | 53 | UDP and TCP |
+| HTTP | 80 | TCP |
+| HTTPS | 443 | TCP |
+| DHCP server | 67 | UDP |
+| DHCP client | 68 | UDP |
+
+TCP provides ordered, reliable delivery. UDP has less overhead but does not guarantee delivery.
+
+Inspect listening sockets:
+
+```bash
+ss -tuln                   # TCP/UDP, listening, numeric
+ss -tulnp                  # include processes; may need sudo
+ss -tan                    # all TCP connections
+```
+
+## DNS and hostnames
+
+DNS converts names such as `example.com` into IP addresses.
+
+```bash
+getent hosts example.com
+host example.com
+dig example.com
+dig example.com A
+dig example.com AAAA
+```
+
+Important files:
+
+| File | Purpose |
+| --- | --- |
+| `/etc/hosts` | Local name-to-address entries |
+| `/etc/resolv.conf` | Resolver configuration |
+| `/etc/nsswitch.conf` | Lookup order, including `files` and `dns` |
+| `/etc/hostname` | Local hostname |
+
+Example `/etc/hosts` entry:
+
+```text
+192.168.1.50  app.lab app
+```
+
+## Troubleshooting order
+
+Check from local to remote:
+
+```bash
+ip link                         # 1. Is interface up?
+ip address                      # 2. Does it have an address?
+ip route                        # 3. Is there a route/default gateway?
+ping -c 3 127.0.0.1            # 4. Does local TCP/IP work?
+ping -c 3 192.168.1.1          # 5. Can gateway be reached?
+ping -c 3 1.1.1.1              # 6. Can internet IP be reached?
+getent hosts example.com        # 7. Does DNS work?
+curl -I https://example.com     # 8. Does application protocol work?
+```
+
+Useful tools:
+
+```bash
+tracepath example.com            # show path and possible MTU issues
+traceroute example.com           # show network path
+nc -vz example.com 443           # test one TCP port
+```
+
+If IP connectivity works but names fail, investigate DNS—not the interface or default route.
+
+## Small challenge
+
+Without reading the solution, find:
+
+1. Active interface name.
+2. Its IPv4 address and prefix.
+3. Default gateway.
+4. Configured DNS server.
+5. Programs listening on TCP ports.
+6. Whether `example.com` resolves and responds on TCP port 443.
+
+<Accordions>
+  <Accordion title="Show solution">
+
+```bash
+ip -br link
+ip -4 -br address
+ip route show default
+cat /etc/resolv.conf
+sudo ss -tlnp
+getent hosts example.com
+nc -vz example.com 443
+```
+
+Exact output differs between systems. Explain each result instead of memorizing addresses.
+
+  </Accordion>
+</Accordions>
+
+## Quick reference
+
+| Task | Command |
+| --- | --- |
+| Show interfaces | `ip -br link` |
+| Show addresses | `ip -br address` |
+| Show routes | `ip route` |
+| Show active connections | `nmcli connection show --active` |
+| Show listening ports | `ss -tuln` |
+| Resolve a name | `getent hosts NAME` |
+| Test reachability | `ping -c 3 HOST` |
+| Test TCP port | `nc -vz HOST PORT` |
+| Trace route | `tracepath HOST` |
+
+## Review questions
+
+<Accordions>
+  <Accordion title="What does a default route do?">
+    It tells Linux where to send packets when no more-specific route matches their destination.
+  </Accordion>
+  <Accordion title="What is the difference between an IP address and a port?">
+    An IP address identifies a network interface or host. A port identifies a service or application endpoint on that host.
+  </Accordion>
+  <Accordion title="A ping to 1.1.1.1 works, but example.com fails. What should you check?">
+    Check name resolution with `getent hosts`, `host`, or `dig`, then inspect `/etc/resolv.conf` and the lookup order in `/etc/nsswitch.conf`.
+  </Accordion>
+</Accordions>

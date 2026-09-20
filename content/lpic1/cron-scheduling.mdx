@@ -1,0 +1,243 @@
+---
+title: Cron and Job Scheduling
+description: Schedule recurring and one-time Linux jobs with cron, system cron files, and at.
+---
+
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
+
+# Cron and Job Scheduling
+
+Linux can run commands later or on a repeating schedule.
+
+| Tool | Use |
+| --- | --- |
+| `cron` | Repeating jobs |
+| `at` | One-time jobs |
+
+## User crontabs
+
+Edit current user's crontab:
+
+```bash
+crontab -e
+```
+
+List or remove it:
+
+```bash
+crontab -l
+crontab -r
+```
+
+Root can manage another user's crontab:
+
+```bash
+sudo crontab -u alice -l
+sudo crontab -u alice -e
+```
+
+## Cron syntax
+
+A user crontab has five time fields followed by command:
+
+```text
+minute  hour  day-of-month  month  day-of-week  command
+```
+
+```text
+┌──────── minute (0–59)
+│ ┌────── hour (0–23)
+│ │ ┌──── day of month (1–31)
+│ │ │ ┌── month (1–12)
+│ │ │ │ ┌ day of week (0–7, Sunday is 0 or 7)
+│ │ │ │ │
+* * * * * command
+```
+
+Examples:
+
+```text
+# Every day at 02:30
+30 2 * * * /home/alice/bin/backup.sh
+
+# Every Monday at 09:00
+0 9 * * 1 /home/alice/bin/report.sh
+
+# Every 15 minutes
+*/15 * * * * /home/alice/bin/check.sh
+
+# Weekdays at 18:00
+0 18 * * 1-5 /home/alice/bin/cleanup.sh
+
+# First day of every month
+0 0 1 * * /home/alice/bin/monthly.sh
+```
+
+Useful shortcuts:
+
+```text
+@reboot  /home/alice/bin/startup.sh
+@daily   /home/alice/bin/daily.sh
+@weekly  /home/alice/bin/weekly.sh
+```
+
+## Cron environment
+
+Cron runs with a small environment. Use absolute paths and set required variables explicitly.
+
+```text
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=alice
+
+0 2 * * * /home/alice/bin/backup.sh >> /home/alice/backup.log 2>&1
+```
+
+<Callout type="warn">
+A command working in your terminal does not prove it will work in cron. Cron may have a different `PATH`, working directory, shell, and environment.
+</Callout>
+
+Good cron scripts should:
+
+- Use absolute paths where practical.
+- Create required directories.
+- Write useful output to a log.
+- Return non-zero on failure.
+- Avoid interactive prompts.
+
+## System cron files
+
+System-wide locations include:
+
+| Path | Purpose |
+| --- | --- |
+| `/etc/crontab` | Main system crontab |
+| `/etc/cron.d/` | Package and service cron files |
+| `/etc/cron.hourly/` | Hourly scripts |
+| `/etc/cron.daily/` | Daily scripts |
+| `/etc/cron.weekly/` | Weekly scripts |
+| `/etc/cron.monthly/` | Monthly scripts |
+
+System crontabs add a **username** between schedule and command:
+
+```text
+30 2 * * * root /usr/local/sbin/backup.sh
+```
+
+A user crontab does not include that username field.
+
+## Cron access control
+
+These files may restrict access:
+
+```text
+/etc/cron.allow
+/etc/cron.deny
+```
+
+If `cron.allow` exists, only listed users may use cron. Exact fallback behavior can differ by distribution.
+
+## One-time jobs with `at`
+
+Schedule a command:
+
+```bash
+at 18:30
+at> /home/alice/bin/report.sh
+at> Ctrl+D
+```
+
+Other time formats:
+
+```bash
+echo '/home/alice/bin/report.sh' | at now + 10 minutes
+echo '/home/alice/bin/backup.sh' | at 23:00 tomorrow
+```
+
+Manage queued jobs:
+
+```bash
+atq                         # list jobs
+at -c JOB_ID                # display queued job
+atrm JOB_ID                 # remove job
+```
+
+Access can be controlled with `/etc/at.allow` and `/etc/at.deny`.
+
+## Check services and logs
+
+Service names vary by distribution:
+
+```bash
+systemctl status cron       # Debian family
+systemctl status crond      # Red Hat family
+journalctl -u cron
+journalctl -u crond
+```
+
+## Small challenge
+
+Create `/tmp/cron-lab.sh`:
+
+```bash
+#!/usr/bin/env bash
+printf '%s cron works\n' "$(date --iso-8601=seconds)" >> /tmp/cron-lab.log
+```
+
+Then:
+
+1. Make it executable.
+2. Schedule it every two minutes.
+3. Confirm output appears in `/tmp/cron-lab.log`.
+4. Remove the cron entry after testing.
+5. Schedule it once with `at` for two minutes from now.
+
+<Accordions>
+  <Accordion title="Show solution">
+
+```bash
+chmod +x /tmp/cron-lab.sh
+crontab -e
+```
+
+Add:
+
+```text
+*/2 * * * * /tmp/cron-lab.sh
+```
+
+Check the result, then remove the entry with `crontab -e`:
+
+```bash
+tail /tmp/cron-lab.log
+echo '/tmp/cron-lab.sh' | at now + 2 minutes
+atq
+```
+
+  </Accordion>
+</Accordions>
+
+## Quick reference
+
+| Task | Command or location |
+| --- | --- |
+| Edit user schedule | `crontab -e` |
+| List user schedule | `crontab -l` |
+| System schedule | `/etc/crontab`, `/etc/cron.d/` |
+| Schedule once | `at TIME` |
+| List one-time jobs | `atq` |
+| Remove one-time job | `atrm JOB_ID` |
+
+## Review questions
+
+<Accordions>
+  <Accordion title="What is the difference between a user crontab and /etc/crontab?">
+    `/etc/crontab` includes a username field after the five time fields. A user crontab runs as its owner and has no username field.
+  </Accordion>
+  <Accordion title="Why should cron jobs use absolute paths?">
+    Cron has a limited environment and may not use the same `PATH` as your interactive shell.
+  </Accordion>
+  <Accordion title="When should you use at instead of cron?">
+    Use `at` for a job that should run once. Use cron for repeating schedules.
+  </Accordion>
+</Accordions>
