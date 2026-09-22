@@ -188,9 +188,49 @@ times(4, i => acc += i);
 assert(acc === 6, "times");
 ```
 
+## Challenge: Shopping Discount Calculator
+
+Build a program that calculates a product's final price.
+
+### Requirements
+
+1. Create variables for the product name, price, quantity, and membership status.
+2. Write a basic function named `calculateTotal(price, quantity, isMember)`.
+3. Multiply the price by the quantity.
+4. If `isMember` is `true`, subtract a 10% discount.
+5. Return the final price and print the purchase summary.
+6. Do not use arrays, objects, or loops.
+
+```js
+const productName = "T-shirt";
+const price = 20;
+const quantity = 3;
+const isMember = true;
+
+function calculateTotal(price, quantity, isMember) {
+  // Your code here
+}
+
+const finalPrice = calculateTotal(price, quantity, isMember);
+
+console.log(
+  `You bought ${quantity} ${productName}(s). Final price: $${finalPrice}`
+);
+
+assert(calculateTotal(20, 3, true) === 54, "member discount");
+assert(calculateTotal(20, 3, false) === 60, "regular price");
+```
+
+Expected output for the starter values:
+
+```text
+You bought 3 T-shirt(s). Final price: $54
+```
+
 ## Homework
 
 - javascript.info tasks in *Function basics* and *Function expressions*.
+- Complete the shopping discount calculator without arrays, objects, or loops.
 - Take your longest file from Phase 0 and pull out at least two functions. The file should get shorter.
 
 **Due: ____**
