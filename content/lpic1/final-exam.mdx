@@ -1,0 +1,465 @@
+---
+title: "CTF — LPIC-1 Final Exam"
+description: A Docker-based capture-the-flag final exam covering all LPIC-1 topics — packages, shared libraries, permissions, text tools, cron, environment, networking, and boot. Nine flags, one container.
+icon: Flag
+---
+
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+# CTF — LPIC-1 Final Exam
+
+Nine challenges, one container. Instead of a quiz, you get a live Debian box seeded with real
+artifacts — a suspicious SUID binary, a locked vault, a leaking secret, a listener, a cron job — and
+you dig them out with the actual commands, not multiple choice.
+
+**Covers:** boot & system architecture · shared libraries · package management · text tools ·
+permissions · cron · shell/environment · networking — every remaining LPIC-1 topic not already
+covered by the [SSH quiz](/lpic1/quiz) or the [Processes CTF](/lpic1/ctf-processes).
+
+<Callout type="warn">
+Everything happens **inside the container**. Nothing touches your host. When you're done, `docker rm`
+it and it's gone.
+</Callout>
+
+---
+
+## Setup
+
+```bash
+mkdir lpic1-final-exam && cd lpic1-final-exam
+# paste the Dockerfile below into Dockerfile
+docker build -t lpic1-final .
+docker run -it --rm --name lpic1-final lpic1-final
+```
+
+You land in a bash shell inside the container as `root`, with the challenge environment already
+seeded and two background processes already running.
+
+<Accordions>
+<Accordion title="Dockerfile — click to expand (don't read the internals, it's the answer key)">
+
+```dockerfile
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    procps iproute2 lsof net-tools grep sed gawk findutils coreutils \
+    cron python3 vim less man-db iputils-ping ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Challenge 2: SUID hunt ------------------------------------------------
+RUN mkdir -p /opt/ctf && cp /bin/cp /opt/ctf/sync-helper && chmod 4777 /opt/ctf/sync-helper
+
+# --- Challenge 3: locked vault ---------------------------------------------
+RUN mkdir -p /opt/vault/inner \
+    && echo 'trust_but_verify' > /opt/vault/inner/secret.txt \
+    && chmod 600 /opt/vault/inner/secret.txt \
+    && chmod 000 /opt/vault/inner \
+    && chmod 750 /opt/vault
+
+# --- Challenge 4: log analysis ---------------------------------------------
+RUN mkdir -p /var/log && cat > /var/log/ctf-access.log <<'EOF'
+2026-01-04 03:01:12 INFO  service started
+2026-01-04 03:02:44 WARN  slow query 812ms
+2026-01-04 03:03:02 ERROR db connection refused
+2026-01-04 03:04:15 INFO  request handled 200
+2026-01-04 03:05:50 ERROR db connection refused
+2026-01-04 03:06:01 INFO  request handled 200
+2026-01-04 03:07:33 ERROR upstream timeout
+2026-01-04 03:08:09 WARN  slow query 640ms
+2026-01-04 03:09:47 ERROR upstream timeout
+2026-01-04 03:10:00 INFO  request handled 200
+EOF
+
+# --- Challenge 5: cron detective -------------------------------------------
+RUN echo '*/7 * * * * root /usr/bin/true # ctf-heartbeat' > /etc/cron.d/ctf-job \
+    && chmod 644 /etc/cron.d/ctf-job
+
+# --- Challenge 9: boot / system architecture -------------------------------
+RUN ln -sf /lib/systemd/system/multi-user.target /etc/systemd/system/default.target
+
+# --- Challenges 6 & 7: leaking secret + listener, started at container boot
+RUN cat > /usr/local/bin/ctf-entrypoint.sh <<'EOF'
+#!/usr/bin/env bash
+CTF_SECRET=griffin-42 nohup python3 -c 'import time; time.sleep(99999)' >/dev/null 2>&1 &
+nohup python3 -c '
+import socket, time
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("0.0.0.0", 47890))
+s.listen(5)
+time.sleep(99999)
+' >/dev/null 2>&1 &
+exec bash
+EOF
+RUN chmod +x /usr/local/bin/ctf-entrypoint.sh
+
+WORKDIR /root
+CMD ["/usr/local/bin/ctf-entrypoint.sh"]
+```
+
+</Accordion>
+</Accordions>
+
+## How to check a flag
+
+Paste this function into your container shell once:
+
+```bash
+checkflag() {
+  h=$(printf '%s' "$2" | sha256sum | cut -c1-12)
+  if [ "$h" = "$1" ]; then echo "✅ CORRECT"; else echo "❌ wrong"; fi
+}
+```
+
+Flags are always `LPIC{...}`. Use single quotes so the shell doesn't eat the braces. The hash only
+tells you right/wrong — never the answer.
+
+---
+
+## Rules
+
+1. **No reading the Dockerfile.** It's the answer key.
+2. Solve with commands, not guesses.
+3. `man` pages allowed. Search engines discouraged.
+4. Write down the command that got you each flag.
+
+---
+
+## Challenge 1 — Who owns this binary?
+
+**Difficulty:** ★☆☆☆☆ · Topic: package management
+
+`ss` is installed on this box. **Find which Debian package provides `/usr/bin/ss`, and submit the
+package name.**
+
+Flag format: `LPIC{package-name}`
+Verify against: `c5afb484598a`
+
+<Accordions>
+<Accordion title="Hint 1">You need the path first — `which` or `command -v`.</Accordion>
+<Accordion title="Hint 2"><code>dpkg -S /path/to/file</code> answers "which package owns this file".</Accordion>
+<Accordion title="Solution">
+
+```bash
+dpkg -S $(command -v ss)
+# iproute2: /usr/bin/ss
+```
+
+```bash
+checkflag c5afb484598a 'LPIC{iproute2}'
+```
+
+**Lesson:** `dpkg -S` reverses `dpkg -L` — file → package instead of package → files. RPM
+equivalent is `rpm -qf`.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 2 — The dangerous copy
+
+**Difficulty:** ★★☆☆☆ · Topic: permissions / security
+
+Somewhere under `/opt` sits a binary that is both **SUID root** and **world-writable** — the worst
+possible combination, since anyone can overwrite it with arbitrary code that then runs as root.
+
+**Use `find` to locate a SUID file under `/opt` that is also writable by others, and submit its
+filename** (not the path).
+
+Flag format: `LPIC{filename}`
+Verify against: `5932067e59e7`
+
+<Accordions>
+<Accordion title="Hint 1"><code>find /opt -perm -4000</code> finds SUID files.</Accordion>
+<Accordion title="Hint 2">Add <code>-perm -002</code> to also require world-writable, or just <code>ls -l</code> the result and read the mode.</Accordion>
+<Accordion title="Solution">
+
+```bash
+find /opt -perm -4000 -perm -002 -type f
+# /opt/ctf/sync-helper
+ls -l /opt/ctf/sync-helper
+# -rwsrwxrwx 1 root root ... /opt/ctf/sync-helper
+```
+
+```bash
+checkflag 5932067e59e7 'LPIC{sync-helper}'
+```
+
+**Lesson:** SUID + world-writable = instant root, no exploit needed — overwrite the file, run it.
+Routine audit: `find / -perm -4000 -perm -002 -type f 2>/dev/null`.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 3 — Open the vault
+
+**Difficulty:** ★★☆☆☆ · Topic: permissions
+
+`/opt/vault/inner/secret.txt` holds a word you need. But `/opt/vault/inner` has its execute bit
+stripped, so you can't traverse into it even as root's shell — well, root can, but reason it out as
+if you couldn't.
+
+**Fix the permission bug and read the file. Submit its content as the flag.**
+
+Flag format: `LPIC{word}`
+Verify against: `0918aa7dde9f`
+
+<Accordions>
+<Accordion title="Hint 1">Directories need the execute bit to be entered (`cd`), separate from read.</Accordion>
+<Accordion title="Hint 2"><code>ls -ld /opt/vault/inner</code> shows the current mode. `chmod +x` fixes traversal.</Accordion>
+<Accordion title="Solution">
+
+```bash
+ls -ld /opt/vault/inner
+# d--------- ... /opt/vault/inner
+chmod +x /opt/vault/inner
+cat /opt/vault/inner/secret.txt
+# trust_but_verify
+```
+
+```bash
+checkflag 0918aa7dde9f 'LPIC{trust_but_verify}'
+```
+
+**Lesson:** on a directory, `r` lets you list names (`ls`), `x` lets you traverse and access known
+names (`cd`, or `cat` a file if you already know its name). Missing `x` blocks both, even with `r`.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 4 — Count the outage
+
+**Difficulty:** ★★☆☆☆ · Topic: text processing
+
+`/var/log/ctf-access.log` mixes `INFO`, `WARN`, and `ERROR` lines.
+
+**Count how many lines contain `ERROR` and submit the number.**
+
+Flag format: `LPIC{n}`
+Verify against: `c10d8d82617d`
+
+<Accordions>
+<Accordion title="Hint 1"><code>grep -c</code> counts matching lines directly — no need to pipe to `wc -l`.</Accordion>
+<Accordion title="Hint 2"><code>grep -c ERROR /var/log/ctf-access.log</code></Accordion>
+<Accordion title="Solution">
+
+```bash
+grep -c ERROR /var/log/ctf-access.log
+# 4
+```
+
+```bash
+checkflag c10d8d82617d 'LPIC{4}'
+```
+
+**Lesson:** `grep -c` counts matching *lines*, not total matches — a line with `ERROR` twice still
+counts once. Use `grep -o ERROR file | wc -l` if you need occurrence count instead.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 5 — The heartbeat
+
+**Difficulty:** ★★★☆☆ · Topic: cron
+
+Someone dropped a job into `/etc/cron.d/`.
+
+**Find the file and submit its minute-field schedule expression exactly as written.**
+
+Flag format: `LPIC{expression}` — e.g. `LPIC{*/5}`
+Verify against: `b8ba4733d9c4`
+
+<Accordions>
+<Accordion title="Hint 1"><code>/etc/cron.d/</code> holds system-wide cron files — each line includes a username, unlike user crontabs.</Accordion>
+<Accordion title="Hint 2"><code>cat /etc/cron.d/*</code></Accordion>
+<Accordion title="Solution">
+
+```bash
+cat /etc/cron.d/ctf-job
+# */7 * * * * root /usr/bin/true # ctf-heartbeat
+```
+
+```bash
+checkflag b8ba4733d9c4 'LPIC{*/7}'
+```
+
+**Lesson:** files in `/etc/cron.d/` have a 6th field (the user to run as) that user crontabs
+(`crontab -e`) don't — cron uses the file's location to know whether to expect it.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 6 — The leaking secret
+
+**Difficulty:** ★★★☆☆ · Topic: processes / environment
+
+A background process is running with a secret baked into its environment — a bad practice you're
+about to prove is bad.
+
+**Find that process and read its environment via `/proc`. Submit the value of `CTF_SECRET`.**
+
+Flag format: `LPIC{value}`
+Verify against: `805cd7747ccd`
+
+<Accordions>
+<Accordion title="Hint 1"><code>pgrep -af python3</code> to find candidate PIDs.</Accordion>
+<Accordion title="Hint 2"><code>/proc/&lt;PID&gt;/environ</code> is NUL-separated, not newline-separated — pipe through <code>tr '\0' '\n'</code>.</Accordion>
+<Accordion title="Solution">
+
+```bash
+pgrep -af python3
+# 41  python3 -c import time; time.sleep(99999)
+# 43  python3 -c \nimport socket, time\n...
+
+tr '\0' '\n' < /proc/41/environ | grep CTF_SECRET
+# CTF_SECRET=griffin-42
+```
+
+```bash
+checkflag 805cd7747ccd 'LPIC{griffin-42}'
+```
+
+**Lesson:** any local user who can read `/proc/<PID>/environ` (root, or the process owner) sees every
+env var that process was launched with — including secrets. Use files with tight permissions or a
+secrets manager instead of `ENV`/`export` for credentials.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 7 — Who's listening?
+
+**Difficulty:** ★★★☆☆ · Topic: networking
+
+Something is listening on a TCP port between `47000` and `48000`.
+
+**List listening sockets and submit the port number.**
+
+Flag format: `LPIC{port}`
+Verify against: `ed25291367c9`
+
+<Accordions>
+<Accordion title="Hint 1"><code>ss -lntp</code> lists listening TCP sockets with the owning process.</Accordion>
+<Accordion title="Hint 2"><code>ss -lntp | grep 47</code></Accordion>
+<Accordion title="Solution">
+
+```bash
+ss -lntp
+# LISTEN 0  5  0.0.0.0:47890  0.0.0.0:*  users:(("python3",pid=43,fd=3))
+```
+
+```bash
+checkflag ed25291367c9 'LPIC{47890}'
+```
+
+**Lesson:** `ss` is the modern replacement for `netstat`; `-l` listening, `-n` numeric, `-t` TCP,
+`-p` show the owning process (needs root inside the container, which you are here).
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 8 — The linker's cache
+
+**Difficulty:** ★★☆☆☆ · Topic: shared libraries
+
+You just dropped a new `.so` into a directory listed in `/etc/ld.so.conf.d/`. The dynamic linker
+still can't find it because its cache is stale.
+
+**Name the single command that rebuilds `/etc/ld.so.cache` from `/etc/ld.so.conf` and
+`/etc/ld.so.conf.d/*.conf`.**
+
+Flag format: `LPIC{command}`
+Verify against: `50e748daab2a`
+
+<Accordions>
+<Accordion title="Hint 1">It's the same command that also lists the current cache with `-p`.</Accordion>
+<Accordion title="Hint 2">Root-only, no arguments needed for the common case.</Accordion>
+<Accordion title="Solution">
+
+```bash
+ldconfig
+ldconfig -p | grep yourlib   # verify it's now listed
+```
+
+```bash
+checkflag 50e748daab2a 'LPIC{ldconfig}'
+```
+
+**Lesson:** `ldd` tells you what a *binary* needs; `ldconfig` maintains the *system-wide cache* the
+dynamic linker consults at runtime. Adding a `.conf` file alone changes nothing until `ldconfig` runs.
+</Accordion>
+</Accordions>
+
+---
+
+## Challenge 9 — What will boot into?
+
+**Difficulty:** ★★☆☆☆ · Topic: boot / system architecture
+
+**Read the symlink `/etc/systemd/system/default.target` and submit the target name it points to**
+(just the filename, e.g. `graphical.target`).
+
+Flag format: `LPIC{target-name}`
+Verify against: `83a2e2d6df18`
+
+<Accordions>
+<Accordion title="Hint 1"><code>readlink</code> shows what a symlink points to.</Accordion>
+<Accordion title="Hint 2"><code>readlink -f /etc/systemd/system/default.target</code> resolves the full path — take the basename.</Accordion>
+<Accordion title="Solution">
+
+```bash
+readlink /etc/systemd/system/default.target
+# /lib/systemd/system/multi-user.target
+```
+
+```bash
+checkflag 83a2e2d6df18 'LPIC{multi-user.target}'
+```
+
+**Lesson:** `systemctl set-default <target>` just rewrites this symlink. `multi-user.target` is the
+text-mode equivalent of old runlevel 3; `graphical.target` (runlevel 5) additionally pulls in a
+display manager.
+</Accordion>
+</Accordions>
+
+---
+
+## Final task — the incident report
+
+No flag. Do it anyway.
+
+1. Which finding here would you fix first on a real production box, and why?
+2. Which command from this exam did you not know before — and where does it fit in the boot →
+   packages → files → processes → network story?
+3. Rebuild the image from memory: which seeded artifact maps to which LPIC-1 exam objective?
+
+---
+
+## Cleanup
+
+```bash
+exit
+docker rm -f lpic1-final 2>/dev/null
+docker rmi lpic1-final
+```
+
+---
+
+## Flag reference
+
+| # | Challenge | Hash | Skill |
+| - | --------- | ---- | ----- |
+| 1 | Who owns this binary? | `c5afb484598a` | `dpkg -S` |
+| 2 | The dangerous copy | `5932067e59e7` | `find -perm -4000` |
+| 3 | Open the vault | `0918aa7dde9f` | directory `x` bit |
+| 4 | Count the outage | `c10d8d82617d` | `grep -c` |
+| 5 | The heartbeat | `b8ba4733d9c4` | `/etc/cron.d` |
+| 6 | The leaking secret | `805cd7747ccd` | `/proc/PID/environ` |
+| 7 | Who's listening? | `ed25291367c9` | `ss -lntp` |
+| 8 | The linker's cache | `50e748daab2a` | `ldconfig` |
+| 9 | What will boot into? | `83a2e2d6df18` | `readlink`, systemd targets |
