@@ -1,0 +1,220 @@
+---
+title: "Exam — Linux Health Report & Backup"
+description: A beginner-friendly, 10-question LPIC-1 exam covering commands, reports, permissions, backups, and cron, with feedback after submission.
+---
+
+import Quiz from "@/components/quiz";
+
+# Exam — Linux Health Report & Backup
+
+You manage a small Linux machine. Your task is to prepare a workspace, collect a health report, back up sample files, and schedule a daily backup.
+
+This exam checks the commands and decisions needed for that project. It does not execute commands or verify files on your machine.
+
+## Instructions
+
+- **Time:** 20 minutes (self-timed).
+- **Questions:** 10 multiple-choice questions; choose one answer for each.
+- **Scoring:** One point per correct answer. Pass with **8/10 (80%)**.
+- Answer every question before clicking **Submit answers**. Unanswered questions count as incorrect.
+- Answers stay editable until submission. Correct answers and explanations appear only after submission.
+- Submit your **first attempt** to your instructor before using **Try again**.
+- If you try commands, use a disposable Linux VM and work only inside `~/lpic-lab`. No `sudo` is required.
+
+## Scenario
+
+Use Bash on a Debian VM. Your home directory is `/home/student`.
+
+The project uses these paths:
+
+```text
+/home/student/lpic-lab/
+├── data/          # sample text files
+├── reports/       # saved health reports
+├── backups/       # compressed archives
+├── report.sh      # collects machine information
+└── backup.sh      # backs up data/
+```
+
+Each question is independent. Assume any files or directories mentioned in it already exist unless the question asks you to create them.
+
+## Questions
+
+<Quiz
+  title="Linux Health Report & Backup — Exam"
+  pass={80}
+  showVimToggle={false}
+  questions={[
+    {
+      type: "multiple",
+      question: "1. Which Bash command creates the data, reports, and backups directories, including any missing parent directories?",
+      options: [
+        "touch ~/lpic-lab/{data,reports,backups}",
+        "mkdir -p ~/lpic-lab/{data,reports,backups}",
+        "mkdir -f ~/lpic-lab/{data,reports,backups}",
+        "cp -r ~/lpic-lab/{data,reports,backups}",
+      ],
+      correctIndex: 1,
+      explanation: "Bash expands the braces into three paths. mkdir -p creates directories and missing parents, and accepts existing directories.",
+    },
+    {
+      type: "multiple",
+      question: "2. Which pair of commands prints the machine's hostname and the current effective user's name?",
+      options: ["pwd; who", "uname -r; id -g", "hostname; whoami", "date; uptime"],
+      correctIndex: 2,
+      explanation: "hostname prints the machine's hostname. whoami prints the username associated with the current effective user ID.",
+    },
+    {
+      type: "multiple",
+      question: "3. Which pair shows human-readable RAM usage and filesystem disk-space usage?",
+      options: ["free -h; df -h", "df -h; free -h", "du -sh; hostname", "ps aux; uname -r"],
+      correctIndex: 0,
+      explanation: "free -h reports memory usage. df -h reports space usage on mounted filesystems. The question asks for RAM first, disk space second.",
+    },
+    {
+      type: "multiple",
+      question: "4. You already saved a report in ~/lpic-lab/reports/health.txt. Which command appends uptime without replacing its existing contents?",
+      options: [
+        "uptime > ~/lpic-lab/reports/health.txt",
+        "uptime < ~/lpic-lab/reports/health.txt",
+        "uptime 2> ~/lpic-lab/reports/health.txt",
+        "uptime >> ~/lpic-lab/reports/health.txt",
+      ],
+      correctIndex: 3,
+      explanation: ">> appends standard output. A single > replaces existing contents. 2> redirects standard error, and < redirects input.",
+    },
+    {
+      type: "multiple",
+      question: "5. Using Debian's procps ps, which pipeline shows a header followed by the five processes with the highest percentage memory usage?",
+      options: [
+        "ps aux --sort=%mem | head -n 6",
+        "ps aux --sort=-%mem | head -n 6",
+        "ps aux --sort=-%cpu | head -n 6",
+        "ps aux --sort=-%mem | tail -n 5",
+      ],
+      correctIndex: 1,
+      explanation: "--sort=-%mem sorts by descending memory percentage. head -n 6 keeps the header plus five process rows.",
+    },
+    {
+      type: "multiple",
+      question: "6. Which Bash assignment stores today's date, formatted as YYYY-MM-DD, in a variable named today?",
+      options: ["today = $(date +%F)", "today='date +%F'", "today=$(date +%F)", "echo today=$(date +%F)"],
+      correctIndex: 2,
+      explanation: "$(...) captures command output. Assignments have no spaces around =. date +%F prints the date as YYYY-MM-DD.",
+    },
+    {
+      type: "multiple",
+      question: "7. Which command gives only the owner read, write, and execute permissions on backup.sh, with no permissions for group or others?",
+      options: [
+        "chmod 700 ~/lpic-lab/backup.sh",
+        "chmod 644 ~/lpic-lab/backup.sh",
+        "chmod 777 ~/lpic-lab/backup.sh",
+        "chmod 755 ~/lpic-lab/backup.sh",
+      ],
+      correctIndex: 0,
+      explanation: "700 means owner rwx (4+2+1), group --- (0), others --- (0). On a directory, 700 also restricts listing and traversal to its owner, apart from privileged access.",
+    },
+
+    {
+      type: "multiple",
+      question: "8. A backup script must print 'Backup created' only when tar succeeds. Which approach is correct?",
+      options: [
+        "Run tar, then always print success and exit 0.",
+        "Use if tar ...; then print success; else print an error to stderr and exit 1; fi.",
+        "Print success before running tar.",
+        "Ignore tar's exit status whenever an archive file exists.",
+      ],
+      correctIndex: 1,
+      explanation: "Test tar's exit status directly. A failed backup can leave a partial archive, so file existence alone does not prove success. Errors should go to stderr and return a nonzero status.",
+    },
+
+    {
+      type: "multiple",
+      question: "9. In student’s user crontab, which entry runs the executable backup.sh every day at 02:30, using the machine's configured cron timezone? Assume the script itself uses absolute paths.",
+      options: [
+        "30 2 * * * /home/student/lpic-lab/backup.sh",
+        "2 30 * * * /home/student/lpic-lab/backup.sh",
+        "30 2 * * 1 /home/student/lpic-lab/backup.sh",
+        "30 2 * * * student /home/student/lpic-lab/backup.sh",
+      ],
+      correctIndex: 0,
+      explanation: "User crontabs use minute, hour, day of month, month, day of week, then the command. They do not include a username field. Cron must be installed and running; the script needs an appropriate shebang and execute permission.",
+    },
+    {
+      type: "multiple",
+      question: "10. Which check best demonstrates that your backup can restore the original sample files?",
+      options: [
+        "Check only that the archive filename ends in .tar.gz.",
+        "Check only that the archive is larger than zero bytes.",
+        "Extract over the original data directory and assume success.",
+        "Extract into a separate empty restore directory, then use diff -r to compare its data directory with the unchanged original data directory.",
+      ],
+      correctIndex: 3,
+      explanation: "A separate restore avoids overwriting originals. For this sample-file lab, diff -r returning 0 confirms matching directory contents. It does not verify every ownership, permission, or other metadata property.",
+    },
+  ]}
+/>
+
+## Submit your result
+
+1. Click **Submit answers** after answering all 10 questions.
+2. Take a screenshot of the result popup showing the exam page, percentage, score out of 10, and numbered question results. Green means correct; red means incorrect.
+3. Click **Review answers** to see each question's correct/incorrect status, your selection, the correct answer, and its explanation. Take additional screenshots of the review if it does not fit on one screen.
+4. Send the result screenshot and review screenshots to your instructor through your usual course channel. Include your **full name, class, and exam date** in the message. Suggested filename: `your-name-lpic-health-backup-result.png`.
+5. Do not refresh, close the page, or click **Try again** until you have captured your first-attempt result. Answers are not saved across page reloads.
+
+## Part 2 — Online Linux CTF
+
+Use [pwn.college — Linux Luminarium](https://pwn.college/linux-luminarium/) for hands-on practice with online flag submission. These are existing external challenges, not copies of this exam. No local VM or instructor-hosted server is needed for this part.
+
+### Get started
+
+1. Register or log in at [pwn.college](https://pwn.college/). Keep the same account for all challenges.
+2. Read the [platform orientation](#platform-orientation) below before beginning if this is your first visit.
+3. Open a module from the table, expand the challenge with the exact title shown, and click **Start**. Use the normal challenge mode, not privileged practice mode, for credit.
+4. Open its **Terminal**, read the challenge instructions, and solve it using Linux commands.
+5. Copy the flag produced by the challenge into the platform's **Flag** input and submit it there. Our multiple-choice answer letters are not flags.
+6. Confirm the challenge is marked solved on your account before moving on. If a submission fails, check that you copied the entire flag and that the matching challenge is active.
+
+### Platform orientation
+
+Start with the official [Welcome dojo](https://pwn.college/welcome/) linked by Linux Luminarium. Orientation is preparation, not one of the 10 graded challenges below.
+
+### Assigned challenges
+
+Suggested time: **60–90 minutes**, plus account setup and orientation. Each accepted challenge is worth one point: **10 points total**, recorded separately from the quiz.
+
+| # | Module | Exact challenge title | Course skill |
+| --- | --- | --- | --- |
+| 1 | [Comprehending Commands](https://pwn.college/linux-luminarium/commands/#challenges-header-13) | making directories | Create a workspace with `mkdir` |
+| 2 | [Comprehending Commands](https://pwn.college/linux-luminarium/commands/#challenges-header-7) | touching files | Create sample files with `touch` |
+| 3 | [Practicing Piping](https://pwn.college/linux-luminarium/piping/#challenges-header-1) | Redirecting output | Save command output using `>` |
+| 4 | [Practicing Piping](https://pwn.college/linux-luminarium/piping/#challenges-header-3) | Appending output | Preserve existing output using `>>` |
+| 5 | [Practicing Piping](https://pwn.college/linux-luminarium/piping/#challenges-header-7) | Grepping live output | Connect commands with pipes and filter output |
+| 6 | [Shell Variables](https://pwn.college/linux-luminarium/variables/#challenges-header-6) | Storing Command Output | Capture output using command substitution |
+| 7 | [Perceiving Permissions](https://pwn.college/linux-luminarium/permissions/#challenges-header-4) | Changing Permissions | Change file access with `chmod` |
+| 8 | [Perceiving Permissions](https://pwn.college/linux-luminarium/permissions/#challenges-header-5) | Executable Files | Make a file executable |
+| 9 | [Processes and Jobs](https://pwn.college/linux-luminarium/processes/#challenges-header-1) | Listing Processes | Inspect running processes with `ps` |
+| 10 | [Processes and Jobs](https://pwn.college/linux-luminarium/processes/#challenges-header-10) | Process Exit Codes | Inspect success and failure using `$?` |
+
+These challenges practice related skills, not every exam requirement. Hostname/RAM reporting, cron, and backup restore verification remain covered by the quiz or your local project. No archive-creation or archive-listing challenge is assigned here.
+
+### Submit CTF evidence
+
+- Submit each flag **on pwn.college** so the platform can validate it and record your solve.
+- Send your instructor your **pwn.college username**, full name, class, and date.
+- Include screenshots showing the assigned challenge titles and solved indicators across the five modules. Capture your username in the account menu or a separate account screenshot so the evidence can be matched to your account.
+- Include a short numbered list of the commands you used for challenges 1–10. Do not send passwords, session cookies, or flags.
+- Module totals include unassigned challenges; show the individual assigned challenges rather than relying only on a module's total score.
+
+<Callout type="info">
+CTF submissions are stored on the external platform, not this docs site. The instructor does not automatically receive a class gradebook or get access to your account. Quiz result screenshots and CTF evidence are two separate hand-ins. Challenge titles and availability were checked on October 14, 2026; if a direct link changes, open its module and find the exact title.
+</Callout>
+
+## Review material
+
+- [Shell scripting](/lpic1/shell-scripting)
+- [Streams, pipes, and redirects](/lpic1/ai-linux)
+- [Processes and monitoring](/lpic1/processes)
+- [Filesystems and permissions](/lpic1/filesystems-permissions)
+- [Cron and scheduling](/lpic1/cron-scheduling)
