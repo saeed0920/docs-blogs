@@ -20,6 +20,9 @@ const config = {
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
+  experimental: {
+    agentUpgrade: "security",
+  },
   typescript: {
     //TODO
     ignoreBuildErrors: true,
