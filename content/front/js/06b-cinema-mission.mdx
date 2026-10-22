@@ -1,0 +1,191 @@
+---
+title: "Mission: Cinema Ticket System"
+description: Practice functions, conditions, type checks, arrays, and loops by building a ticket price calculator.
+---
+
+import { Icon } from '@iconify/react';
+
+# <span><Icon icon="lucide:clapperboard" /> Mission: Cinema Ticket System</span>
+
+You were hired as a **Junior JavaScript Developer** at **Super Cinema**.
+The cinema needs a small program that calculates ticket prices. Your job is to build it.
+
+**You will practice:**
+
+- Variables and data types (`string`, `number`, `boolean`)
+- Functions and parameters
+- Conditions (`if`, `else if`, `else`)
+- Returning values
+- Arrays and loops (Level 2)
+
+<Callout type="info">
+Use only JavaScript and `console.log()`. No HTML or CSS needed.
+</Callout>
+
+---
+
+## <Icon icon="lucide:ticket" /> Level 1 — The Ticket Machine
+
+### Task 1: Calculate the ticket price
+
+Write a function `getTicketPrice(age, isWeekend)`.
+
+- `age` — a number
+- `isWeekend` — a boolean (`true` or `false`)
+
+| Customer age | Ticket price |
+| ------------ | ------------ |
+| 0–12         | 50,000 Tomans  |
+| 13–17        | 80,000 Tomans  |
+| 18–64        | 120,000 Tomans |
+| 65+          | 70,000 Tomans  |
+
+On weekends, **every ticket costs 20,000 Tomans extra**.
+
+```js
+getTicketPrice(10, false); // 50000
+getTicketPrice(16, true);  // 100000
+getTicketPrice(25, true);  // 140000
+getTicketPrice(70, false); // 70000
+```
+
+<Callout type="warn">
+Your function must **return** the price. Printing it with `console.log()` is not enough.
+</Callout>
+
+### Task 2: Reject bad data
+
+The machine must not accept wrong information. Return `null` when:
+
+- `age` is not a number, or is outside `0`–`120`
+- `isWeekend` is not a boolean
+
+```js
+getTicketPrice("hello", false); // null
+getTicketPrice(-5, true);       // null
+getTicketPrice(25, "yes");      // null
+```
+
+**Bonus:** also reject decimal ages like `12.5`.
+
+<Callout type="info">
+Prices are plain numbers in Tomans: write `50000`, not `"50,000"`.
+</Callout>
+
+> Hint: `typeof` tells you the type of a value. Check the input **first**, then calculate.
+
+### Task 3: Print a ticket
+
+Write `createTicket(name, age, isWeekend)`.
+It must **use** `getTicketPrice()` — don't copy the price rules again.
+
+```js
+createTicket("Alex", 20, true);
+// "Hello Alex! Your cinema ticket costs 140000 Tomans. Enjoy the movie!"
+```
+
+If the information is invalid, return:
+
+```text
+Invalid ticket information!
+```
+
+---
+
+## <Icon icon="lucide:users" /> Level 2 — Arrays and Loops
+
+The cinema now sells tickets to groups.
+
+### Task 4: Group total
+
+Write `calculateGroupTotal(ages, isWeekend)`. It should:
+
+1. Loop over every age in the array.
+2. Call your `getTicketPrice()` for each age.
+3. Add all prices together.
+4. Return the total.
+
+If **any** age is invalid, return `null`.
+
+```js
+calculateGroupTotal([10, 16, 25, 70], false); // 320000
+calculateGroupTotal([10, 16, 25, 70], true);  // 400000
+calculateGroupTotal([10, "x", 25], false);    // null
+```
+
+### Task 5: Count the children
+
+Write `countChildren(ages)`. Count how many customers are **12 or younger**. Use a loop and a condition.
+
+```js
+countChildren([5, 16, 8, 30, 12]); // 3
+```
+
+---
+
+## <Icon icon="lucide:flame" /> Bonus — For Fast Finishers
+
+- **A.** `findOldestCustomer(ages)` — return the highest age **without** `Math.max()`.
+- **B.** `getGroupDiscount(ages, isWeekend)` — groups of 5 or more get **10% off** the total.
+- **C.** `printAllTickets(names, ages, isWeekend)` — print one ticket message for every customer.
+
+---
+
+## <Icon icon="lucide:code" /> Starter Code
+
+Copy this into a file named `cinema.js` and run it with `node cinema.js`.
+
+```js
+// ===== LEVEL 1 =====
+
+function getTicketPrice(age, isWeekend) {
+  // Your code here
+}
+
+function createTicket(name, age, isWeekend) {
+  // Your code here
+}
+
+// ===== LEVEL 2 =====
+
+function calculateGroupTotal(ages, isWeekend) {
+  // Your code here
+}
+
+function countChildren(ages) {
+  // Your code here
+}
+
+// ===== TEST YOUR CODE =====
+
+console.log(getTicketPrice(10, false));  // 50000
+console.log(getTicketPrice(25, true));   // 140000
+console.log(getTicketPrice("hello", false)); // null
+console.log(getTicketPrice(25, "yes"));  // null
+
+console.log(createTicket("Alex", 20, true));
+console.log(createTicket("Sam", -1, false)); // Invalid ticket information!
+
+console.log(calculateGroupTotal([10, 16, 25, 70], false)); // 320000
+console.log(calculateGroupTotal([10, 16, 25, 70], true));  // 400000
+
+console.log(countChildren([5, 16, 8, 30, 12])); // 3
+```
+
+If a printed value doesn't match the comment next to it, something is wrong — fix it before moving on.
+
+---
+
+## <Icon icon="lucide:circle-check" /> Submission Checklist
+
+- [ ] My functions use parameters.
+- [ ] I used conditions to calculate different prices.
+- [ ] I checked the input data types.
+- [ ] My functions **return** values.
+- [ ] I reused `getTicketPrice()` instead of repeating the price rules.
+- [ ] I used an array and a loop in Level 2.
+- [ ] I tested invalid inputs too.
+
+<Callout type="info">
+**Final rule:** don't just make it work — make it readable. Use clear variable names and keep each function small.
+</Callout>
