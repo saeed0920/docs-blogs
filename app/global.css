@@ -459,3 +459,25 @@ a[data-active="true"] {
 [dir="rtl"] {
     font-family: "Vazirmatn", sans-serif;
 }
+
+/* Only RTL lesson articles; navigation and English lessons stay unchanged. */
+#nd-page[dir="rtl"] {
+    text-align: start;
+}
+
+#nd-page[dir="rtl"] :is(h1, h2, h3, h4, h5, h6) {
+    font-family: inherit;
+}
+
+#nd-page[dir="rtl"] :is(th, td) {
+    text-align: start;
+}
+
+#nd-page[dir="rtl"] :is(pre, code, figure[data-rehype-pretty-code-figure]) {
+    direction: ltr;
+    text-align: left;
+}
+
+#nd-page[dir="rtl"] :not(pre) > code {
+    unicode-bidi: isolate;
+}

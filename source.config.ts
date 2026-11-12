@@ -29,6 +29,11 @@ export const gitPosts = defineDocs({
 });
 export const FrontPosts = defineDocs({
   dir: "content/front",
+  docs: {
+    schema: pageSchema.extend({
+      dir: z.enum(["ltr", "rtl"]).optional(),
+    }),
+  },
 });
 
 export const blogPosts = defineCollections({
